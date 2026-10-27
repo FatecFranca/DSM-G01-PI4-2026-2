@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cadastro | Paraflow</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="transicao.js"></script>
+</head>
+<body>
+  <main class="card invertido">
+    <section class="painel-login">
+      <h1 class="logo" aria-label="Paraflow">
+        <span class="para">PARA</span><span class="flow">FLOW</span>
+      </h1>
+
+      <form class="form form-cadastro" id="form-cadastro" novalidate>
+        <h2>Crie sua conta</h2>
+
+        <div class="linha">
+          <div class="campo">
+            <label for="nome">Nome completo</label>
+            <input id="nome" type="text" autocomplete="name" aria-describedby="msg-nome" required />
+            <small class="msg" id="msg-nome" aria-live="polite"></small>
+          </div>
+
+          <div class="campo">
+            <label for="usuario">Usuário</label>
+            <input id="usuario" type="text" autocomplete="username" autocapitalize="none"
+                   spellcheck="false" maxlength="20" aria-describedby="msg-usuario" required />
+            <small class="msg" id="msg-usuario" aria-live="polite"></small>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" autocomplete="email" autocapitalize="none"
+                 spellcheck="false" aria-describedby="msg-email" required />
+          <small class="msg" id="msg-email" aria-live="polite"></small>
+        </div>
+
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <div class="senha-wrap">
+            <input id="senha" type="password" autocomplete="new-password" aria-describedby="msg-senha" required />
+            <button type="button" class="toggle" data-alvo="senha" aria-pressed="false" aria-label="Mostrar senha">
+              <svg class="olho olho-aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="olho olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10.73 5.08A10.74 10.74 0 0 1 21.94 11.65a1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/>
+                <path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/>
+                <path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/>
+                <path d="m2 2 20 20"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="forca" id="forca" data-nivel="">
+            <div class="forca-barra"></div>
+          </div>
+          <span class="forca-texto" id="forca-texto"></span>
+
+          <ul class="requisitos" aria-label="Requisitos da senha">
+            <li data-req="tamanho">8+ caracteres</li>
+            <li data-req="letra">Letra</li>
+            <li data-req="numero">Número</li>
+          </ul>
+          <small class="msg" id="msg-senha" aria-live="polite"></small>
+        </div>
+
+        <div class="campo">
+          <label for="confirmar">Confirmar senha</label>
+          <div class="senha-wrap">
+            <input id="confirmar" type="password" autocomplete="new-password" aria-describedby="msg-confirmar" required />
+            <button type="button" class="toggle" data-alvo="confirmar" aria-pressed="false" aria-label="Mostrar senha">
+              <svg class="olho olho-aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="olho olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10.73 5.08A10.74 10.74 0 0 1 21.94 11.65a1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/>
+                <path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/>
+                <path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/>
+                <path d="m2 2 20 20"/>
+              </svg>
+            </button>
+          </div>
+          <small class="msg" id="msg-confirmar" aria-live="polite"></small>
+        </div>
+
+        <p class="erro" id="erro" role="alert" hidden></p>
+        <p class="sucesso" id="sucesso" role="status" hidden></p>
+
+        <button type="submit" class="btn btn-principal">Criar conta</button>
+
+        <p class="troca">Já tem conta? <a href="index.html" data-transicao="voltar">Entrar</a></p>
+      </form>
+    </section>
+
+    <section class="painel-ilustracao" aria-hidden="true"></section>
+  </main>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    const form = el('form-cadastro');
+    const campos = {
+      nome: el('nome'),
+      usuario: el('usuario'),
+      email: el('email'),
+      senha: el('senha'),
+      confirmar: el('confirmar'),
+    };
+    const erro = el('erro');
+    const sucesso = el('sucesso');
+    const botao = form.querySelector('.btn-principal');
+    const tocados = new Set();
+
+    /* ---------- Requisitos da senha ---------- */
+    const reqs = {
+      tamanho: (v) => v.length >= 8,
+      letra: (v) => /[a-zA-ZÀ-ÿ]/.test(v),
+      numero: (v) => /\d/.test(v),
+    };
+    const senhaValida = (v) => Object.values(reqs).every((fn) => fn(v));
+
+    /* ---------- Validadores (retornam '' quando está ok) ---------- */
+    const validadores = {
+      nome: (v) =>
+        v.trim().split(/\s+/).filter(Boolean).length >= 2
+          ? '' : 'Informe nome e sobrenome.',
+      usuario: (v) =>
+        /^[\w.]{3,20}$/.test(v.trim())
+          ? '' : 'Use 3 a 20 caracteres: letras, números, _ ou ponto.',
+      email: (v) =>
+        /^\S+@\S+\.\S+$/.test(v.trim())
+          ? '' : 'Informe um e-mail válido.',
+      senha: (v) =>
+        senhaValida(v) ? '' : 'A senha precisa ter 8+ caracteres, uma letra e um número.',
+      confirmar: (v) =>
+        !v ? 'Confirme sua senha.'
+        : v === campos.senha.value ? '' : 'As senhas não coincidem.',
+    };
+
+    function validar(chave) {
+      const campo = campos[chave];
+      const msg = validadores[chave](campo.value);
+      el('msg-' + chave).textContent = msg;
+      campo.setAttribute('aria-invalid', String(!!msg));
+      campo.classList.toggle('invalido', !!msg);
+      campo.classList.toggle('valido', !msg && campo.value !== '');
+      return !msg;
+    }
+
+    /* ---------- Força da senha ---------- */
+    function atualizarForca(v) {
+      document.querySelectorAll('[data-req]').forEach((li) =>
+        li.classList.toggle('ok', reqs[li.dataset.req](v))
+      );
+
+      let pontos = Object.values(reqs).filter((fn) => fn(v)).length;
+      if (v.length >= 12) pontos++;
+      if (/[a-z]/.test(v) && /[A-Z]/.test(v)) pontos++;
+      if (/[^A-Za-z0-9]/.test(v)) pontos++;
+
+      const nivel = !v ? '' : pontos <= 3 ? 'fraca' : pontos <= 5 ? 'media' : 'forte';
+      const nomes = { fraca: 'fraca', media: 'média', forte: 'forte' };
+
+      el('forca').dataset.nivel = nivel;
+      el('forca-texto').textContent = nivel ? `Força da senha: ${nomes[nivel]}` : '';
+    }
+
+    /* ---------- Eventos ---------- */
+    Object.entries(campos).forEach(([chave, campo]) => {
+      campo.addEventListener('input', () => {
+        if (chave === 'senha') {
+          atualizarForca(campo.value);
+          if (tocados.has('confirmar')) validar('confirmar');
+        }
+        if (tocados.has(chave)) validar(chave);
+      });
+
+      campo.addEventListener('blur', () => {
+        if (campo.value === '' && !tocados.has(chave)) return; // não reclama de campo que nem foi usado
+        tocados.add(chave);
+        validar(chave);
+      });
+    });
+
+    document.querySelectorAll('.toggle').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const input = campos[btn.dataset.alvo];
+        const mostrando = input.type === 'text';
+        input.type = mostrando ? 'password' : 'text';
+        btn.setAttribute('aria-pressed', String(!mostrando));
+        btn.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+      })
+    );
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      erro.hidden = true;
+      sucesso.hidden = true;
+
+      let primeiroInvalido = null;
+      Object.keys(campos).forEach((chave) => {
+        tocados.add(chave);
+        if (!validar(chave) && !primeiroInvalido) primeiroInvalido = campos[chave];
+      });
+      if (primeiroInvalido) {
+        primeiroInvalido.focus();
+        return;
+      }
+
+      const dados = {
+        nome: campos.nome.value.trim(),
+        usuario: campos.usuario.value.trim(),
+        email: campos.email.value.trim().toLowerCase(),
+        senha: campos.senha.value,
+      };
+
+      botao.disabled = true;
+      botao.textContent = 'Criando...';
+
+      try {
+        // TODO: enviar `dados` para sua API aqui (fetch POST)
+        await new Promise((r) => setTimeout(r, 1000));
+
+        botao.textContent = 'Conta criada ✓';
+        sucesso.textContent = 'Conta criada! Redirecionando para o login...';
+        sucesso.hidden = false;
+        setTimeout(() => navegarCom('index.html', 'voltar'), 1500);
+      } catch (err) {
+        erro.textContent = 'Não foi possível criar a conta. Tente novamente.';
+        erro.hidden = false;
+        botao.disabled = false;
+        botao.textContent = 'Criar conta';
+      }
+    });
+  </script>
+</body>
+</html>

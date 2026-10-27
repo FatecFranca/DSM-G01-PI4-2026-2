@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Paraflow: separação, contagem e controle de estoque de parafusos por bitola e comprimento, em tempo real, com IoT." />
+  <title>Paraflow | Contagem e separação de parafusos com IoT</title>
+  <link rel="stylesheet" href="inicio.css" />
+  <script>document.documentElement.classList.add('js');</script>
+  <script src="inicio.js" defer></script>
+</head>
+<body>
+
+  <!-- Ícones reutilizáveis -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-arquivo" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9.5 12.5 5 5"/><path d="m14.5 12.5-5 5"/></symbol>
+    <symbol id="i-regua" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></symbol>
+    <symbol id="i-enviar" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-painel" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></symbol>
+    <symbol id="i-globo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
+    <symbol id="i-raio" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+    <symbol id="i-ajustes" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></symbol>
+    <symbol id="i-fabrica" viewBox="0 0 24 24"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></symbol>
+    <symbol id="i-caixa" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    <symbol id="i-capelo" viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+    <symbol id="i-separar" viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/></symbol>
+    <symbol id="i-contar" viewBox="0 0 24 24"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></symbol>
+  </svg>
+
+  <!-- ===== Topo ===== -->
+  <header class="topo" id="topo">
+    <div class="container topo-in">
+      <a href="#inicio" class="logo logo-sm" aria-label="Paraflow, ir ao início">
+        <span class="para">PARA</span><span class="flow">FLOW</span>
+      </a>
+
+      <nav class="menu" aria-label="Seções da página">
+        <a href="#funcoes">Funções</a>
+        <a href="#problema">Problema</a>
+        <a href="#proposta">Proposta</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#publico">Para quem</a>
+      </nav>
+
+      <div class="topo-acoes">
+        <a href="index.html" class="btn btn-solido btn-sm">Entrar</a>
+        <a href="cadastro.html" class="btn btn-contorno btn-sm">Cadastrar</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===== Destaque com o mascote ===== -->
+    <section class="hero" id="inicio">
+      <div class="container hero-in">
+        <div class="hero-texto">
+          <span class="selo">IoT · MQTT · Blynk</span>
+          <h1>Parafusos contados e separados <span class="destaque">sem contagem manual</span></h1>
+
+          <div class="conversa" id="conversa" aria-live="polite">
+            <p class="balao">
+              Oi! Eu sou o mascote do Paraflow. Deixa que eu explico o projeto em poucas palavras.
+            </p>
+            <p class="balao">
+              Em oficinas, almoxarifados e pequenas indústrias, contar e classificar parafusos por bitola
+              e por comprimento ainda é manual: lento, sujeito a erro humano e sem registro digital.
+            </p>
+            <p class="balao balao-ultimo">
+              O Paraflow separa os parafusos por comprimento e bitola, conta cada peça e mostra o estoque
+              atualizado em tempo real no dashboard.
+            </p>
+          </div>
+
+          <div class="hero-botoes">
+            <a href="#funcoes" class="btn btn-solido">Ver as funções</a>
+            <a href="cadastro.html" class="btn btn-contorno">Criar conta</a>
+          </div>
+        </div>
+
+        <div class="hero-mascote">
+          <div class="mascote-brilho" aria-hidden="true"></div>
+          <div class="mascote-flutua">
+            <img
+              src="cat.png"
+              width="800" height="800"
+              alt="Gato mascote do Paraflow fazendo joinha, com camiseta azul estampada com um parafuso"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Funções ===== -->
+    <section class="secao" id="funcoes">
+      <div class="container">
+        <header class="secao-titulo revelar">
+          <span class="sobretitulo">Funções</span>
+          <h2>O que o Paraflow faz por você</h2>
+          <p class="lead">
+            Do parafuso na bancada ao número no dashboard: separação, contagem e acompanhamento
+            do estoque, tudo em um só sistema.
+          </p>
+        </header>
+
+        <div class="funcoes-layout">
+          <div class="grade grade-funcoes">
+            <article class="cartao revelar">
+              <span class="icone"><svg class="ico"><use href="#i-separar"/></svg></span>
+              <h3>Separação automática</h3>
+              <p>Separa fisicamente os parafusos por comprimento e por bitola.</p>
+            </article>
+            <article class="cartao revelar">
+              <span class="icone"><svg class="ico"><use href="#i-contar"/></svg></span>
+              <h3>Contagem de cada peça</h3>
+              <p>Registra cada parafuso processado, sem contagem manual.</p>
+            </article>
+            <article class="cartao revelar">
+              <span class="icone"><svg class="ico"><use href="#i-painel"/></svg></span>
+              <h3>Dashboard em tempo real</h3>
+              <p>Estoque atualizado enviado via MQTT para a plataforma Blynk.</p>
+            </article>
+            <article class="cartao revelar">
+              <span class="icone"><svg class="ico"><use href="#i-globo"/></svg></span>
+              <h3>Acompanhamento remoto</h3>
+              <p>Consulte o estoque a qualquer momento, sem estar ao lado da máquina.</p>
+            </article>
+            <article class="cartao revelar">
+              <span class="icone"><svg class="ico"><use href="#i-raio"/></svg></span>
+              <h3>Atuador automático</h3>
+              <p>Aciona um atuador automaticamente com base em uma regra de negócio.</p>
+            </article>
+            <article class="cartao revelar">
+              <span class="icone"><svg class="ico"><use href="#i-ajustes"/></svg></span>
+              <h3>Controle manual</h3>
+              <p>O operador controla o sistema, mesmo sem estar fisicamente próximo da máquina.</p>
+            </article>
+          </div>
+
+          <figure class="painel revelar" aria-label="Exemplo ilustrativo de dashboard de estoque de parafusos">
+            <figcaption class="painel-topo">
+              <span class="ao-vivo"><i></i> Estoque em tempo real</span>
+              <small>exemplo ilustrativo</small>
+            </figcaption>
+
+            <ul class="estoque" id="estoque">
+              <li data-qtd="1240" data-max="2000">
+                <span class="nome">M3 × 10 mm</span>
+                <div class="barra"><i></i></div>
+                <b class="qtd">0</b>
+              </li>
+              <li data-qtd="860" data-max="2000">
+                <span class="nome">M4 × 16 mm</span>
+                <div class="barra"><i></i></div>
+                <b class="qtd">0</b>
+              </li>
+              <li data-qtd="430" data-max="2000">
+                <span class="nome">M5 × 20 mm</span>
+                <div class="barra"><i></i></div>
+                <b class="qtd">0</b>
+              </li>
+              <li data-qtd="96" data-max="2000">
+                <span class="nome">M6 × 25 mm <em class="tag">Estoque baixo</em></span>
+                <div class="barra"><i></i></div>
+                <b class="qtd">0</b>
+              </li>
+            </ul>
+
+            <div class="painel-rodape">
+              <span>Peças em estoque</span>
+              <b id="total">0</b>
+            </div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Problema ===== -->
+    <section class="secao secao-alt" id="problema">
+      <div class="container">
+        <header class="secao-titulo revelar">
+          <span class="sobretitulo">O problema</span>
+          <h2>A contagem manual de parafusos ainda é a regra</h2>
+          <p class="lead">
+            Em oficinas, almoxarifados e pequenas indústrias, a contagem e a classificação de parafusos
+            por bitola e por comprimento ainda são feitas manualmente.
+          </p>
+        </header>
+
+        <div class="grade grade-3">
+          <article class="cartao revelar">
+            <span class="icone"><svg class="ico"><use href="#i-relogio"/></svg></span>
+            <h3>Processo lento</h3>
+            <p>Classificar e contar por bitola e por comprimento, peça por peça, toma tempo da equipe.</p>
+          </article>
+          <article class="cartao revelar">
+            <span class="icone"><svg class="ico"><use href="#i-alerta"/></svg></span>
+            <h3>Sujeito a erro humano</h3>
+            <p>A contagem feita à mão está sujeita a erros, e cada erro compromete o estoque que você acredita ter.</p>
+          </article>
+          <article class="cartao revelar">
+            <span class="icone"><svg class="ico"><use href="#i-arquivo"/></svg></span>
+            <h3>Sem registro digital</h3>
+            <p>O processo não gera nenhum registro digital do estoque disponível.</p>
+          </article>
+        </div>
+
+        <aside class="destaque-aviso revelar">
+          <strong>O resultado prático:</strong> falta de visibilidade sobre quantas peças de cada tipo existem
+          no momento. Quando uma bitola acaba sem aviso prévio, a produção atrasa.
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===== Proposta ===== -->
+    <section class="secao" id="proposta">
+      <div class="container">
+        <header class="secao-titulo revelar">
+          <span class="sobretitulo">Nossa proposta</span>
+          <h2>Automatizar a separação, a contagem e o controle</h2>
+          <p class="lead">
+            O objetivo do projeto é automatizar a separação física de parafusos por comprimento e por bitola,
+            contar cada peça processada e apresentar o estoque atualizado em tempo real em um dashboard,
+            eliminando a contagem manual e reduzindo o erro humano associado a ela.
+          </p>
+        </header>
+
+        <div class="comparativo">
+          <article class="coluna coluna-manual revelar">
+            <h3>Contagem manual</h3>
+            <ul>
+              <li>Processo lento</li>
+              <li>Sujeito a erro humano</li>
+              <li>Sem registro digital do estoque</li>
+              <li>Sem visibilidade do que existe no momento</li>
+            </ul>
+          </article>
+
+          <article class="coluna coluna-paraflow revelar">
+            <h3>Com o Paraflow</h3>
+            <ul>
+              <li>Separação automática por comprimento e bitola</li>
+              <li>Contagem de cada peça processada</li>
+              <li>Estoque atualizado em tempo real no dashboard</li>
+              <li>Menos contagem manual e menos erro humano</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Como funciona ===== -->
+    <section class="secao secao-alt" id="como-funciona">
+      <div class="container">
+        <header class="secao-titulo revelar">
+          <span class="sobretitulo">Como a IoT contribui</span>
+          <h2>Dos sensores ao dashboard, em tempo real</h2>
+          <p class="lead">
+            Os dados gerados pelos sensores de comprimento e peso são processados localmente pelo
+            microcontrolador e enviados em tempo real, via protocolo MQTT, para uma plataforma de
+            monitoramento na nuvem (Blynk).
+          </p>
+        </header>
+
+        <ol class="passos">
+          <li class="revelar">
+            <span class="numero">1</span>
+            <span class="icone"><svg class="ico"><use href="#i-regua"/></svg></span>
+            <h3>Sensores</h3>
+            <p>Medem o comprimento e o peso de cada parafuso.</p>
+          </li>
+          <li class="revelar">
+            <span class="numero">2</span>
+            <span class="icone"><svg class="ico"><use href="#i-chip"/></svg></span>
+            <h3>Microcontrolador</h3>
+            <p>Processa os dados localmente.</p>
+          </li>
+          <li class="revelar">
+            <span class="numero">3</span>
+            <span class="icone"><svg class="ico"><use href="#i-enviar"/></svg></span>
+            <h3>MQTT</h3>
+            <p>Envia os dados em tempo real.</p>
+          </li>
+          <li class="revelar">
+            <span class="numero">4</span>
+            <span class="icone"><svg class="ico"><use href="#i-painel"/></svg></span>
+            <h3>Blynk</h3>
+            <p>Plataforma na nuvem com o dashboard do estoque.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===== Público ===== -->
+    <section class="secao" id="publico">
+      <div class="container">
+        <header class="secao-titulo revelar">
+          <span class="sobretitulo">Para quem</span>
+          <h2>Quem pode utilizar a solução</h2>
+        </header>
+
+        <div class="grade grade-3">
+          <article class="cartao revelar">
+            <span class="icone"><svg class="ico"><use href="#i-fabrica"/></svg></span>
+            <h3>Pequenas indústrias e oficinas mecânicas</h3>
+            <p>Que compram e consomem parafusos de diferentes tamanhos e bitolas.</p>
+          </article>
+          <article class="cartao revelar">
+            <span class="icone"><svg class="ico"><use href="#i-caixa"/></svg></span>
+            <h3>Almoxarifados</h3>
+            <p>Que precisam manter controle de estoque de itens de fixação.</p>
+          </article>
+          <article class="cartao revelar">
+            <span class="icone"><svg class="ico"><use href="#i-capelo"/></svg></span>
+            <h3>Estudantes e makers</h3>
+            <p>Que querem automatizar processos simples de triagem de peças pequenas.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Chamada final ===== -->
+    <section class="secao secao-alt">
+      <div class="container">
+        <div class="cta revelar">
+          <h2>Saiba sempre quantos parafusos você tem</h2>
+          <p>Crie sua conta e acompanhe o estoque por bitola e por comprimento, em tempo real.</p>
+          <div class="hero-botoes centro">
+            <a href="cadastro.html" class="btn btn-solido">Criar conta</a>
+            <a href="index.html" class="btn btn-contorno">Já tenho conta</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape-in">
+    
+      <p>© 2026 Paraflow. Contagem e separação de parafusos com IoT.</p>
+      
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,320 @@
+:root {
+  --bg: #070b16;
+  --painel-1: #0f2747;
+  --painel-2: #0a1628;
+  --campo: #0b1422;
+  --borda: #27406a;
+  --texto: #e8f1fc;
+  --texto-suave: #9db4d1;
+  --acento: #1fc99a;
+  --acento-hover: #00e5ff;
+  --azul: #2f7bff;
+  --azul-claro: #3b8cff;
+  --erro: #ff8a8a;
+  --ok: #7dffc9;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+  font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+  color: var(--texto);
+}
+
+/* ===== Card ===== */
+.card {
+  width: min(1400px, 100%);
+  min-height: min(900px, calc(100dvh - 48px));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.painel-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(24px, 5vh, 56px);
+  padding: 48px;
+  background: linear-gradient(160deg, var(--painel-1), var(--painel-2));
+}
+
+/* ===== Logo neon (suave, sem animação) ===== */
+.logo {
+  display: flex;
+  font-size: clamp(2.6rem, 5vw, 4.6rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  user-select: none;
+}
+
+.logo .para {
+  color: #d9f7ff;
+  text-shadow:
+    0 0 4px rgba(0, 229, 255, 0.6),
+    0 0 12px rgba(0, 229, 255, 0.35);
+}
+
+.logo .flow {
+  color: #dcfff0;
+  text-shadow:
+    0 0 4px rgba(0, 255, 156, 0.6),
+    0 0 12px rgba(0, 255, 156, 0.35);
+}
+
+/* ===== Formulário ===== */
+.form {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.form-cadastro { gap: 14px; }
+
+.form h2 {
+  text-align: center;
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.campo label { font-size: 0.9rem; color: var(--texto-suave); padding-left: 22px; }
+
+.linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form input[type="text"],
+.form input[type="email"],
+.form input[type="password"] {
+  width: 100%;
+  height: 62px;
+  padding: 0 26px;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: var(--campo);
+  color: #fff;
+  font: inherit;
+  font-size: 1.05rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-cadastro input[type="text"],
+.form-cadastro input[type="email"],
+.form-cadastro input[type="password"] { height: 52px; }
+
+.form input:focus {
+  outline: none;
+  border-color: var(--acento-hover);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.25);
+}
+
+/* estados de validação (ficam depois do :focus para ganhar dele) */
+.form input.valido { border-color: var(--acento); }
+.form input.invalido { border-color: var(--erro); }
+.form input.invalido:focus { box-shadow: 0 0 0 3px rgba(255, 138, 138, 0.25); }
+
+.msg { color: var(--erro); font-size: 0.82rem; padding-left: 22px; }
+.msg:empty { display: none; }
+
+/* ===== Botão de mostrar/ocultar senha (ícone de olho) ===== */
+.senha-wrap { position: relative; }
+.senha-wrap input { padding-right: 64px; }
+
+.toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--texto-suave);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.toggle:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+
+.olho { width: 22px; height: 22px; }
+
+/* senha oculta -> olho fechado | senha visível -> olho aberto */
+.toggle[aria-pressed="false"] .olho-aberto { display: none; }
+.toggle[aria-pressed="true"] .olho-fechado { display: none; }
+
+/* ===== Força da senha ===== */
+.forca {
+  height: 6px;
+  margin: 8px 8px 0;
+  border-radius: 999px;
+  background: var(--borda);
+  overflow: hidden;
+}
+.forca-barra {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+.forca[data-nivel="fraca"] .forca-barra { width: 33%; background: #ff6b6b; }
+.forca[data-nivel="media"] .forca-barra { width: 66%; background: #ffc857; }
+.forca[data-nivel="forte"] .forca-barra { width: 100%; background: var(--acento); }
+
+.forca-texto { font-size: 0.82rem; color: var(--texto-suave); padding-left: 22px; }
+.forca-texto:empty { display: none; }
+
+.requisitos {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+.requisitos li {
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  color: var(--texto-suave);
+  transition: color 0.2s, border-color 0.2s;
+}
+.requisitos li::before { content: "○ "; }
+.requisitos li.ok { color: var(--ok); border-color: var(--acento); }
+.requisitos li.ok::before { content: "✓ "; }
+
+/* ===== Mensagens e opções ===== */
+.erro { color: var(--erro); font-size: 0.95rem; text-align: center; }
+.sucesso { color: var(--ok); font-size: 0.95rem; text-align: center; }
+
+.opcoes {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+}
+
+.opcoes a, .troca a { color: var(--texto); text-decoration: none; }
+.opcoes a:hover, .troca a:hover { text-decoration: underline; }
+.troca { text-align: center; font-size: 0.95rem; color: var(--texto-suave); }
+.troca a { color: var(--acento-hover); font-weight: 600; }
+
+/* ===== Botões: trocam de cor e aumentam no hover ===== */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease,
+              border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-principal {
+  background: var(--acento);
+  color: #04261d;
+}
+.btn-principal:hover:not(:disabled) {
+  background: var(--acento-hover);
+  transform: scale(1.07);
+  box-shadow: 0 0 24px rgba(0, 229, 255, 0.55);
+}
+
+.btn-secundario {
+  background: transparent;
+  color: var(--azul-claro);
+  border-color: var(--azul-claro);
+}
+.btn-secundario:hover {
+  background: var(--azul);
+  border-color: var(--azul);
+  color: #fff;
+  transform: scale(1.07);
+  box-shadow: 0 0 24px rgba(47, 123, 255, 0.6);
+}
+
+.btn:active:not(:disabled) { transform: scale(1.02); }
+.btn:disabled { opacity: 0.7; cursor: progress; }
+
+.divisor {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+.divisor::before, .divisor::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--borda);
+}
+
+:focus-visible { outline: 3px solid var(--acento-hover); outline-offset: 3px; }
+
+/* ===== Imagem dos parafusos ===== */
+.painel-ilustracao {
+  background: #fff url("parafusos.webp") center / 394px auto repeat;
+}
+
+/* Cadastro: imagem à esquerda, formulário à direita */
+.card.invertido .painel-ilustracao { order: 1; }
+.card.invertido .painel-login { order: 2; }
+
+/* ===== Transição entre login e cadastro ===== */
+html, body { overflow-x: hidden; }
+
+@keyframes entra-fade {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes entra-direita {
+  from { opacity: 0; transform: translateX(48px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes entra-esquerda {
+  from { opacity: 0; transform: translateX(-48px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes sai-esquerda {
+  to { opacity: 0; transform: translateX(-48px) scale(0.98); }
+}
+@keyframes sai-direita {
+  to { opacity: 0; transform: translateX(48px) scale(0.98); }
+}
+
+.card { animation: entra-fade 0.45s ease both; }
+html[data-entrada="direita"] .card  { animation-name: entra-direita; }
+html[data-entrada="esquerda"] .card { animation-name: entra-esquerda; }
+
+.card.saindo-esquerda { animation: sai-esquerda 0.28s ease forwards; pointer-events: none; }
+.card.saindo-direita  { animation: sai-direita 0.28s ease forwards; pointer-events: none; }
+
+/* ===== Responsivo ===== */
+
+/* Notebook pequeno / temporário pois vai virar react

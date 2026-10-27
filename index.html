@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | Paraflow</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="transicao.js"></script>
+</head>
+<body>
+  <main class="card">
+    <section class="painel-login">
+      <h1 class="logo" aria-label="Paraflow">
+        <span class="para">PARA</span><span class="flow">FLOW</span>
+      </h1>
+
+      <form class="form" id="form-login" novalidate>
+        <h2>Olá, seja bem-vindo</h2>
+
+        <div class="campo">
+          <label for="usuario">Usuário</label>
+          <input id="usuario" type="text" autocomplete="username" required />
+        </div>
+
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <div class="senha-wrap">
+            <input id="senha" type="password" autocomplete="current-password" required />
+            <button type="button" class="toggle" aria-pressed="false" aria-label="Mostrar senha">
+              <svg class="olho olho-aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="olho olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10.73 5.08A10.74 10.74 0 0 1 21.94 11.65a1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/>
+                <path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/>
+                <path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/>
+                <path d="m2 2 20 20"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <p class="erro" id="erro" role="alert" hidden></p>
+
+        <div class="opcoes">
+          <a href="#">Esqueceu a senha?</a>
+        </div>
+
+        <button type="submit" class="btn btn-principal">Entrar</button>
+
+        <div class="divisor"><span>ou</span></div>
+
+        <a href="cadastro.html" class="btn btn-secundario" data-transicao="frente">Cadastrar</a>
+      </form>
+    </section>
+
+    <section class="painel-ilustracao" aria-hidden="true"></section>
+  </main>
+
+  <script>
+    const form = document.getElementById('form-login');
+    const usuario = document.getElementById('usuario');
+    const senha = document.getElementById('senha');
+    const erro = document.getElementById('erro');
+    const toggle = document.querySelector('.toggle');
+    const entrar = form.querySelector('.btn-principal');
+
+    toggle.addEventListener('click', () => {
+      const mostrando = senha.type === 'text';
+      senha.type = mostrando ? 'password' : 'text';
+      toggle.setAttribute('aria-pressed', String(!mostrando));
+      toggle.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      erro.hidden = true;
+
+      if (!usuario.value.trim() || !senha.value) {
+        erro.textContent = 'Preencha usuário e senha.';
+        erro.hidden = false;
+        (usuario.value.trim() ? senha : usuario).focus();
+        return;
+      }
+
+      entrar.disabled = true;
+      entrar.textContent = 'Entrando...';
+      // TODO: chamar sua API aqui
+      await new Promise((r) => setTimeout(r, 1000));
+      entrar.disabled = false;
+      entrar.textContent = 'Entrar';
+    });
+  </script>
+</body>
+</html>
