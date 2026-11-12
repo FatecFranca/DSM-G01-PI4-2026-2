@@ -1,0 +1,16 @@
+name: CI
+on:
+  push: { branches: [main, develop] }
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm install
+      - name: Checar sintaxe do backend
+        run: for f in $(find backend/src backend/scripts -name '*.js'); do node --check "$f"; done
+      - name: Build do web
+        run: npm run build:web
