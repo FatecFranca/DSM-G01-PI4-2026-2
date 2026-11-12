@@ -1,0 +1,18 @@
+/* Fonte única das cores/medidas. O mobile espelha isto em mobile/src/theme/colors.js */
+:root {
+  --bg: #070b16;
+  --bg-2: #0a1324;
+  --painel-1: #0f2747;
+  --painel-2: #0a1628;
+  --campo: #0b1422;
+  --borda: #27406a;
+  --texto: #e8f1fc;
+  --suave: #9db4d1;
+  --verde: #1fc99a;
+  --ciano: #00e5ff;
+  --azul: #2f7bff;
+  --azul-claro: #3b8cff;
+  --alerta: #ffc857;
+  --erro: #ff8a8a;
+  --ok: #7dffc9;
+}

@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+@import './tokens.css';
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 500px at 85% -5%, rgba(0, 229, 255, 0.12), transparent 60%),
+    radial-gradient(800px 500px at 0% 20%, rgba(47, 123, 255, 0.12), transparent 60%);
+  background-repeat: no-repeat;
+  color: var(--texto);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--ciano); outline-offset: 3px; }
+
+.container { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
+
+/* Logo neon suave */
+.logo { display: inline-flex; font-weight: 800; letter-spacing: 0.1em; text-decoration: none; user-select: none; }
+.logo .para { color: #d9f7ff; text-shadow: 0 0 4px rgba(0,229,255,.6), 0 0 12px rgba(0,229,255,.35); }
+.logo .flow { color: #dcfff0; text-shadow: 0 0 4px rgba(0,255,156,.6), 0 0 12px rgba(0,255,156,.35); }
+
+/* Botões */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 56px; padding: 0 32px;
+  border: 2px solid transparent; border-radius: 999px;
+  font: inherit; font-size: 1rem; font-weight: 700; letter-spacing: 0.04em;
+  text-decoration: none; cursor: pointer;
+  transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.btn-sm { height: 42px; padding: 0 20px; font-size: .9rem; }
+.btn-solido { background: var(--verde); color: #04261d; }
+.btn-solido:hover:not(:disabled) { background: var(--ciano); transform: scale(1.05); box-shadow: 0 0 24px rgba(0,229,255,.55); }
+.btn-contorno { background: transparent; color: var(--azul-claro); border-color: var(--azul-claro); }
+.btn-contorno:hover:not(:disabled) { background: var(--azul); border-color: var(--azul); color: #fff; transform: scale(1.05); box-shadow: 0 0 24px rgba(47,123,255,.6); }
+.btn-perigo { background: transparent; color: var(--erro); border-color: var(--erro); }
+.btn:active:not(:disabled) { transform: scale(1.02); }
+.btn:disabled { opacity: .7; cursor: progress; }
+
+.tela-cheia { min-height: 100vh; display: grid; place-items: center; color: var(--suave); }
+
+@media (hover: none) { .btn:hover { transform: none; box-shadow: none; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
