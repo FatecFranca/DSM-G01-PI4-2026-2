@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "paraflow-web",
   "private": true,
   "version": "0.1.0",
@@ -17,5 +18,20 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^6.2.1",
     "vite": "^8.3.5"
+=======
+  "name": "paraflow",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Paraflow: separação, contagem e controle de estoque de parafusos com IoT",
+  "workspaces": ["backend", "web"],
+  "scripts": {
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "dev:backend": "npm run dev -w backend",
+    "dev:web": "npm run dev -w web",
+    "dev:mobile": "npm --prefix mobile run start",
+    "simular": "npm run simular -w backend",
+    "build:web": "npm run build -w web"
+>>>>>>> a6520f112af4da559be136a5c64083c363a7fd2a
   }
 }
