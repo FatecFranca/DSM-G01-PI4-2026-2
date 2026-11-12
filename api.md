@@ -43,6 +43,7 @@ Conecte com `io(url, { auth: { token } })`. Cada conexão entra só na sala da s
 ## MQTT (`<prefixo>` = `MQTT_TOPIC_PREFIX`; `<id>` = `deviceId` gerado pelo servidor)
 Toda mensagem do ESP32 inclui `"token"`. Sem `deviceId` + token válidos, o backend descarta.
 
+
 | Tópico | Sentido | Payload |
 |---|---|---|
 | `<prefixo>/<id>/evento` | ESP32 → backend | `{"comp":10,"bitola":"M3","peso":1.07,"valido":true,"token":"..."}` |
@@ -51,5 +52,6 @@ Toda mensagem do ESP32 inclui `"token"`. Sem `deviceId` + token válidos, o back
 | `<prefixo>/<id>/cmd` | backend → ESP32 | `{"ligado":false}` (retain) ou `{"tara":true}` (**sem** retain) |
 | `<prefixo>/<id>/pedido` | backend → ESP32 (sem retain) | `{"id":"...","comp":10,"bitola":"M3","qtd":20}` |
 | `<prefixo>/<id>/alerta` | backend → ESP32 (retain) | `{"estoqueBaixo":true}` |
+
 
 > Em broker público o token trafega em texto puro. Em produção use TLS e usuário/senha no broker.

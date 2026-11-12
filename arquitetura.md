@@ -19,6 +19,7 @@
 - **Servidor decide a sessão**: `GET /auth/me` e o middleware `autenticar` conferem o JWT *e* a existência do usuário no banco; o WebSocket faz o mesmo no handshake.
 - **Alerta de estoque baixo** só dispara depois da primeira peça contada, e o limite vem da coleção `configs` (não está fixo no firmware).
 
+
 ## Coleções MongoDB
 | Coleção | Campos principais |
 |---|---|
