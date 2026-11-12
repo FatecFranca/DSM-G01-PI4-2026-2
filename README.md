@@ -9,6 +9,21 @@ Projeto Integrador: um ESP32 separa os parafusos por comprimento e bitola, publi
 - Gabriel Henrique Ferreira
 - Rodrigo Avelar Santos
 
+## Sobre o projeto
+
+Em almoxarifados, lojas de ferragens e oficinas, contar e separar parafusos por tipo, tamanho e largura costuma ser um trabalho manual, lento e sujeito a erros, sem nenhum histórico do que foi separado.
+
+O **ParaFlow** automatiza esse processo: o firmware mede e conta os parafusos, envia os dados para uma API própria e o estoque por bitola aparece em um dashboard web e em um aplicativo mobile, com alertas e comando para ligar e desligar o separador.
+
+## Funcionalidades
+
+- Cadastro e login de usuários (site e app).
+- Contagem automática de parafusos.
+- Dashboard web com os dados.
+- Aplicativo mobile para acompanhar os dados.
+- Histórico de contagens e análise estatística dos dados.
+- Comando para ligar e desligar o separador (dashboard e app).
+
 ## Arquitetura
 
 ```
