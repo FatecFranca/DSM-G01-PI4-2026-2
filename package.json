@@ -1,0 +1,16 @@
+{
+  "name": "paraflow",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Paraflow: separação, contagem e controle de estoque de parafusos com IoT",
+  "workspaces": ["backend", "web"],
+  "scripts": {
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "dev:backend": "npm run dev -w backend",
+    "dev:web": "npm run dev -w web",
+    "dev:mobile": "npm --prefix mobile run start",
+    "simular": "npm run simular -w backend",
+    "build:web": "npm run build -w web"
+  }
+}
