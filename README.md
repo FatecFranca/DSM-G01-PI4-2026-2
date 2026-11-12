@@ -18,7 +18,6 @@ O **ParaFlow** automatiza esse processo: o firmware mede e conta os parafusos, e
 ## Funcionalidades
 
 - Cadastro e login de usuários (site e app).
-- Classificação por tipo, tamanho e largura.
 - Contagem automática de parafusos.
 - Dashboard web com os dados.
 - Aplicativo mobile para acompanhar os dados.
