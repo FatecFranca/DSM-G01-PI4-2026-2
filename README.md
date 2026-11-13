@@ -1,133 +1,110 @@
 # Paraflow
 
-**Separação, contagem e controle de estoque de parafusos com IoT.**
-Projeto Integrador: um ESP32 separa os parafusos por comprimento e bitola, publica cada peça via MQTT, e o estoque aparece em tempo real no web e no app.
+Projeto Integrador. Sistema que separa, conta e controla o estoque de parafusos por bitola e comprimento. Um ESP32 mede cada peça e manda os dados por MQTT para um servidor, que guarda tudo no MongoDB e mostra o estoque em tempo real no site e no app.
 
 ## Integrantes
+
 - Guilherme Barbosa B. Campos
 - Cauã Henrique Nascimento
 - Gabriel Henrique Ferreira
 - Rodrigo Avelar Santos
 
-## Sobre o projeto
+## O que o sistema faz
 
-Em almoxarifados, lojas de ferragens e oficinas, contar e separar parafusos por tipo, tamanho e largura costuma ser um trabalho manual, lento e sujeito a erros, sem nenhum histórico do que foi separado.
+- Separa e conta cada parafuso (comprimento pelo sensor, bitola pelo peso na célula de carga).
+- Mostra o estoque atualizado na hora, junto com o peso da balança ao vivo.
+- Cada empresa tem a sua conta: usuários, máquinas, estoque e pedidos são separados entre empresas.
+- O dono da empresa cadastra máquinas e convida ou cria usuários (dono ou operador).
+- Qualquer usuário pode fazer um pedido de parafusos (tipo, comprimento e quantidade). As peças saem do estoque e a máquina gira o carrossel até a gaveta certa.
+- O dashboard mostra o parafuso com menos estoque, a média de peças contadas por dia, gráficos dos últimos 14 dias e uma previsão dos próximos pedidos.
 
-O **ParaFlow** automatiza esse processo: o firmware mede e conta os parafusos, envia os dados para uma API própria e o estoque por bitola aparece em um dashboard web e em um aplicativo mobile, com alertas e comando para ligar e desligar o separador.
-
-## Funcionalidades
-
-- Cadastro e login de usuários (site e app).
-- Contagem automática de parafusos.
-- Dashboard web com os dados.
-- Aplicativo mobile para acompanhar os dados.
-- Histórico de contagens e análise estatística dos dados.
-- Comando para ligar e desligar o separador (dashboard e app).
-
-## Arquitetura
+## Como funciona
 
 ```
-ESP32 (sensores + servo + relé)
-   │  MQTT: 1 evento JSON por peça         ▲ comandos (liga/desliga) e alertas
-   ▼                                        │
-Broker MQTT (Mosquitto) ────────────────────┤
-   │ subscribe                              │ publish
-   ▼                                        │
-Backend Node (Express + Mongoose) ── MongoDB
-   │  REST (/api) + WebSocket (Socket.IO)
-   ├──────────────► Web (React + Vite)
-   └──────────────► Mobile (Expo)
+ESP32 (sensores, balança, servo)
+   |  MQTT: um evento por peça, peso ao vivo
+   v
+Broker MQTT (Mosquitto)
+   |
+   v
+Backend (Node + Express) ---- MongoDB
+   |  REST em /api e WebSocket (Socket.IO)
+   +--> Web (React + Vite)
+   +--> Mobile (Expo)
 ```
 
-O backend é a **fonte da verdade**: o estoque é a contagem dos eventos no MongoDB, então reiniciar o ESP32 não zera nada.
-Detalhes em [`docs/arquitetura.md`](docs/arquitetura.md) e [`docs/api.md`](docs/api.md).
+O estoque não é um contador: é calculado a partir das peças gravadas no banco menos os pedidos. Por isso reiniciar o ESP32 não zera nada.
 
-## Estrutura
+## Pastas
 
-| Pasta | O que é |
-|---|---|
-| `backend/` | API Node (Express), MongoDB (Mongoose), MQTT e Socket.IO |
-| `web/` | Site em React + Vite (landing, login, cadastro, dashboard, histórico) |
-| `mobile/` | App Expo (login, cadastro, dashboard) |
-| `iot/` | Firmware do ESP32 e projeto Wokwi |
-| `docs/` | Briefing, arquitetura e referência da API |
-| `infra/` | Configuração do Mosquitto (usada pelo `docker-compose.yml`) |
+- `backend/`: API em Node (rotas em `src/routes`, regras em `src/services`)
+- `web/`: site em React
+- `mobile/`: app em Expo
+- `iot/`: firmware do ESP32 e circuito do Wokwi
+- `docs/`: briefing, arquitetura e lista de rotas
+- `infra/`: configuração do Mosquitto usada pelo `docker-compose.yml`
 
 ## Como rodar
 
-**Requisitos:** Node 20+, Docker (para MongoDB e Mosquitto locais) e, para o app, Expo Go no celular.
+Precisa de Node 22.13 ou mais novo e do Docker (para o MongoDB e o Mosquitto locais).
 
 ```bash
-# 1. Dependências (backend + web)
 npm install
-
-# 2. MongoDB + broker MQTT locais
 npm run infra:up
 
-# 3. Backend
-cp backend/.env.example backend/.env     # troque o JWT_SECRET
-npm run dev:backend                       # http://localhost:3333/api/health
+cp backend/.env.example backend/.env    # troque o JWT_SECRET
+npm run dev:backend                     # http://localhost:3333/api/health
+npm run dev:web                         # http://localhost:5173
+```
 
-# 4. Web (outro terminal)
-npm run dev:web                           # http://localhost:5173
+Sem Docker, use o MongoDB Atlas e um broker público: coloque a string do Atlas em `MONGO_URI` e `mqtt://broker.hivemq.com:1883` em `MQTT_URL`. Em broker público, troque o `MQTT_TOPIC_PREFIX` por um nome só seu.
 
-# 5. Mobile (outro terminal)
-cd mobile && cp .env.example .env         # coloque o IP da sua máquina
-npm install && npx expo install --fix     # alinha as versões nativas ao SDK do Expo
+O app (Expo):
+
+```bash
+cd mobile
+cp .env.example .env     # coloque o IP do seu computador em EXPO_PUBLIC_API_URL
+npm install
+npx expo install --fix
 npm run start
 ```
 
-> Cada cadastro cria uma **organização** (a empresa) e o usuário vira o **dono** dela. Cada organização só vê os próprios dados.
-> O dono traz a equipe em **Equipe**: gera um código de convite (a pessoa escolhe "Tenho um convite" no cadastro) ou cria o usuário direto. Papéis: **dono** (máquinas, regras, equipe) e **operador** (consulta e liga/desliga).
->
-> **Já tinha rodado a versão anterior?** Os dados antigos não têm organização. Apague o banco antes: `npm run resetar-banco -w backend -- --sim` (ou apague as coleções no Compass/Atlas).
+Ao atualizar o projeto, preserve o banco existente e revise mudanças de dados antes de executar migrações.
 
-### Vincular uma máquina e testar sem hardware
-1. No site, entre em **Configurações → Máquinas → Adicionar máquina**. Copie o `DEVICE_ID` e o `TOKEN` (aparecem uma vez).
-2. Simule o ESP32 publicando peças no MQTT:
-```bash
-npm run simular -- <deviceId> <token>            # 1 peça por segundo
-npm run simular -- <deviceId> <token> 30 200     # 30 peças, a cada 200 ms
-```
-Abra o dashboard e veja o estoque subir em tempo real. Alternativa sem broker: `POST /api/eventos` (precisa de `ALLOW_SIMULATION=true` e de uma máquina cadastrada).
+## Primeiros passos no sistema
 
-### Com o Wokwi / ESP32
-Veja [`iot/README.md`](iot/README.md).
+1. Cadastre-se informando o nome da empresa. Você vira o dono.
+2. Em Configurações, adicione uma máquina. O código e o token aparecem uma vez só.
+3. Para testar sem o ESP32: `npm run simular -- <deviceId> <token>`. O estoque sobe no dashboard.
+4. Em Equipe, gere um código de convite ou crie um usuário. Quem usa o convite entra na sua empresa.
+5. Em Pedidos, peça parafusos. O dashboard mostra a previsão depois dos primeiros pedidos.
 
-### Imagens que precisam ser copiadas
-- `web/public/cat.png` (mascote) e `web/public/parafusos.webp` (fundo do login/cadastro)
-- `mobile/assets/` (ícone, splash, mascote)
+Para usar o ESP32 (ou o Wokwi), veja `iot/README.md`.
 
-## Dashboard e pedidos
-- **Dashboard:** parafuso com menos estoque (e os 2 seguintes), peças contadas hoje, média por dia, média dos últimos 7 dias, taxa de rejeição, gráfico dos últimos 7 dias, últimas peças e **peso da balança ao vivo**.
-- **Pedido de parafusos:** qualquer usuário escolhe tipo, comprimento e quantidade. As peças saem do estoque na hora, o carrossel da máquina gira para a gaveta certa, e o pedido pode ser marcado como retirado ou cancelado (as peças voltam).
+## Papéis
 
-## Rotas
+O dono pode tudo: máquinas, regras de estoque e equipe. O operador consulta o estoque, faz pedidos e liga ou desliga a máquina.
 
-As rotas **reais** ficam no backend, em `backend/src/routes/` (montadas em `/api` por `src/app.js`, e o `src/server.js` sobe tudo). O front nunca decide sozinho se alguém está logado: toda rota protegida do web (`/app/*`) e a pilha privada do mobile só abrem depois que o servidor confirma a sessão em `GET /api/auth/me`, e cada chamada protegida valida o JWT e confirma o usuário no MongoDB.
+## Observações
 
-| Web | Acesso |
-|---|---|
-| `/` | Pública (landing) |
-| `/login`, `/cadastro` | Só sem sessão (com sessão vai ao dashboard) |
-| `/app/dashboard`, `/app/pedidos`, `/app/historico`, `/app/configuracoes` | Só com sessão confirmada pelo servidor |
-| `/app/equipe` | Só o dono (a API também responde 403 aos demais) |
+- Uma célula de carga de 5 kg tem resolução de cerca de 1 g, e os parafusos pesam de 0,3 a 3,3 g. No simulador funciona, mas na montagem real é preciso uma célula de 50 a 500 g.
+- No broker público o token da máquina trafega sem criptografia. Em produção, use TLS e usuário e senha no broker.
+- Os pedidos saem direto do estoque, sem aprovação do dono.
+- Nunca suba para o GitHub os arquivos `.env` e `iot/secrets.h`. Cada pasta tem um arquivo de exemplo.
 
-## Fluxo de trabalho no GitHub
-- Branches: `main` (estável), `develop`, `feat/backend-...`, `feat/web-...`, `feat/mobile-...`, `feat/iot-...`
-- Commits: `feat(backend): ...`, `fix(iot): ...`
-- Pull Request para `develop`, com ao menos 1 revisão. O CI (`.github/workflows/ci.yml`) checa o backend e faz o build do web.
-- Issues e Project board seguindo as fases do briefing.
+## Próximos passos
 
-## Segurança
-- Nunca commite `.env`, `iot/secrets.h` ou tokens. Há um `.env.example` em cada parte.
-- Senhas com bcrypt, JWT com expiração, `helmet`, CORS restrito e rate limit no login.
-- Broker MQTT público (HiveMQ) é só para demonstração: use prefixo único; em produção use broker com usuário/senha e TLS.
-
-## Backlog
-- Editar a tabela de peso na tela de configurações (o limite de estoque baixo já é editável)
-- Fila de pedidos com aprovação do dono (hoje o pedido sai direto do estoque)
+- Editar a tabela de peso pelo site
 - Recuperação de senha
-- Fila offline no firmware quando o MQTT cair
-- Montagem física: célula de 50–500 g com HX711 (a de 5 kg não tem resolução para parafusos de 0,3–3 g)
-- Testes automatizados do backend
+- Fila de envio no firmware para quando o MQTT cair
+- Ampliar os testes automatizados e os ensaios físicos
+
+## Dashboard e build
+
+O dashboard mostra média e desvio padrão populacional das peças válidas dos últimos 14 dias, incluindo dias sem contagem e hoje ainda em andamento. Também permite escolher a máquina da balança e distingue reservas de retiradas confirmadas.
+
+```bash
+npm run build
+```
+
+O build gera o site em `web/dist`. Em produção, `npm start` serve o site e a API juntos. Para simular contagens durante o desenvolvimento sem o ESP32, use o comando `npm run simular` descrito acima.

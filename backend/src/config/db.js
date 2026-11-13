@@ -5,7 +5,7 @@ mongoose.set('strictQuery', true);
 
 export async function conectarBanco() {
   await mongoose.connect(env.MONGO_URI, { serverSelectionTimeoutMS: 8000 });
-  console.log('🍃 MongoDB conectado');
+  console.log('[banco] MongoDB conectado');
 }
 
 export async function desconectarBanco() {

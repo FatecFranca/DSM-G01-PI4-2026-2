@@ -1,38 +1,26 @@
-/*
- * Paraflow — firmware do separador de parafusos (ESP32 + célula de carga de 5 kg / HX711)
- *
- * Fluxo: sensor de comprimento (botão) → espera a peça assentar e a balança ESTABILIZAR
- *        → identifica a bitola pelo peso → move o carrossel → publica 1 evento por peça.
- *        O estoque é calculado no backend.
- *
- * Tempo real: além dos eventos, a balança publica o peso ~1x por segundo (telemetria),
- * e o site mostra a leitura ao vivo.
- *
- * Tópicos (<prefixo>/<DEVICE_ID>/...). Toda mensagem enviada carrega o DEVICE_TOKEN:
- *   evento     (publica)  {"comp":10,"bitola":"M3","peso":1.07,"valido":true,"token":"..."}
- *   telemetria (publica)  {"peso":1.07,"estavel":true,"rssi":-60,"token":"..."}
- *   status     (publica)  {"online":true,"ligado":true,"token":"..."}  retain + LWT
- *   cmd        (assina)   {"ligado":false}  ou  {"tara":true}
- *   pedido     (assina)   {"id":"...","comp":10,"bitola":"M3","qtd":20}  → posiciona a gaveta e apita
- *   alerta     (assina)   {"estoqueBaixo":true}
- *
- * Comandos pelo Serial Monitor (115200):
- *   t          zera a balança (tara)
- *   c<gramas>  calibra com um peso conhecido sobre a balança, ex.: c1000
- *   p          mostra offset e fator de calibração
- *   z          volta ao fator de calibração padrão
- *
- * Bibliotecas: PubSubClient, ArduinoJson, ESP32Servo, HX711  (veja libraries.txt)
- */
+// Paraflow: firmware do separador de parafusos (ESP32 + célula de carga HX711)
+//
+// o botão de comprimento detecta a peça, a balança estabiliza, o peso define a bitola,
+// o carrossel gira e um evento é publicado por MQTT (o estoque é calculado no backend).
+// a balança também publica o peso uma vez por segundo, para o site mostrar ao vivo.
+//
+// tópicos (<TOPIC_PREFIX>/<DEVICE_ID>/...): evento, status e telemetria (publica);
+// cmd, pedido e alerta (assina). toda mensagem publicada leva o DEVICE_TOKEN.
+//
+// comandos no Serial Monitor (115200): t = tara, c<gramas> = calibrar (ex.: c1000),
+// p = mostrar valores, z = voltar ao fator padrão
+//
+// bibliotecas: PubSubClient, ArduinoJson, ESP32Servo, HX711 (veja libraries.txt)
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP32Servo.h>
+#include <ESP32PWM.h>
 #include <HX711.h>
 #include <Preferences.h>
 #include "secrets.h"  // WIFI_*, MQTT_*, TOPIC_PREFIX, DEVICE_ID, DEVICE_TOKEN
 
-// ---------- Pinos ----------
+// pinos
 const int NUM_COMPRIMENTOS = 4;  // 5, 10, 15, 20 mm
 const int NUM_BITOLAS = 3;       // M2, M3, M4
 const int PINOS_COMP[NUM_COMPRIMENTOS] = {13, 14, 27, 4};
@@ -46,7 +34,7 @@ const int LED_STATUS_SEPARADOR = 26;
 const int RELE_SEPARADOR = 32;   // ativo em LOW (inverta se seu módulo for ativo em HIGH)
 const int BUZZER = 33;
 
-// ---------- Tempos (ms) ----------
+// tempos (ms)
 const unsigned long DEBOUNCE_MS = 200;
 const unsigned long ASSENTAR_MS = 300;       // espera a peça assentar antes de olhar a balança
 const unsigned long TIMEOUT_PESO_MS = 2500;  // se não estabilizar até aqui, a peça é rejeitada
@@ -54,17 +42,18 @@ const unsigned long AMOSTRA_MS = 100;        // uma leitura da balança a cada 1
 const unsigned long TELEMETRIA_MS = 1000;
 const unsigned long LED_INVALIDO_MS = 1500;
 const unsigned long BIPE_MS = 150;
+const unsigned long INTERVALO_ALERTA_MS = 5000;
+const int FREQUENCIA_BUZZER_HZ = 2000;
 const unsigned long RETRY_MS = 5000;
 
-// ---------- Célula de carga (HX711) ----------
-// Fator = contagens do HX711 por grama. 419,43 é o valor TEÓRICO de uma célula de 5 kg com
-// sensibilidade 1 mV/V (2^23 × (5 mV / 20 mV) / 5000 g). Cada célula real difere: CALIBRE com "c<gramas>".
+// célula de carga (HX711)
+// fator = contagens por grama. 419,43 é o valor teórico de uma célula de 5 kg (1 mV/V);
+// calibre a sua com "c<gramas>" no Serial
 const float FATOR_PADRAO = 419.43f;
 
-// Os pesos da TABELA abaixo são em gramas reais (um M3 de 10 mm pesa ~1 g). Se a balança (ou o
-// controle da célula no simulador) não permitir ajuste fino de décimos de grama, use ESCALA > 1:
-// a balança passa a "ver" peso × ESCALA (ex.: 100 → 1,05 g real = 105 g na balança), mas os
-// eventos continuam sendo enviados em gramas reais. Com célula adequada (50–500 g), use 1.0.
+// a tabela de pesos abaixo está em gramas reais. ESCALA_PESO multiplica o que a balança "vê"
+// (100: 1,05 g reais = 105 g na célula), útil se o controle do simulador não tem ajuste fino.
+// os eventos sempre saem em gramas reais. com uma célula adequada (50 a 500 g) use 1.0
 const float ESCALA_PESO = 100.0f;
 
 const float TOLERANCIA_ESTAVEL_G = 0.04f;  // variação máxima da janela (em g reais) para "estável"
@@ -80,10 +69,11 @@ const Faixa TABELA_PESO[NUM_COMPRIMENTOS][NUM_BITOLAS] = {
 };
 const float K_DESVIOS = 2.0f;
 
-// ---------- Estado ----------
+// estado
 WiFiClient wifi;
 PubSubClient mqtt(wifi);
 Servo carrossel;
+ESP32PWM buzzer;
 HX711 balanca;
 Preferences prefs;
 
@@ -92,6 +82,7 @@ char mensagemLwt[128];
 
 bool separadorLigado = true;
 bool estoqueBaixo = false;
+unsigned long inicioAlertaEstoque = 0;
 unsigned long ledInvalidoAte = 0;
 
 // buzzer sem delay: N bipes
@@ -123,21 +114,33 @@ int pedidoPosicao = 0;
 
 unsigned long ultimaTentativaWifi = 0, ultimaTentativaMqtt = 0;
 
-// ---------- Saídas ----------
-void bipar(int n) { bipesRestantes = n; bipeLigado = false; proximaTrocaBipe = 0; }
+// saídas
+void bipar(int n) { bipesRestantes = n; bipeLigado = false; proximaTrocaBipe = millis(); }
+
+void aplicaEstoqueBaixo(bool baixo) {
+  // Mensagens repetidas não reiniciam o bipe nem o intervalo do alerta.
+  if (baixo && !estoqueBaixo) inicioAlertaEstoque = millis();
+  estoqueBaixo = baixo;
+}
 
 void atualizaSaidas() {
   unsigned long agora = millis();
-  if ((bipesRestantes > 0 || bipeLigado) && agora >= proximaTrocaBipe) {
-    if (!bipeLigado) { bipeLigado = true; digitalWrite(BUZZER, HIGH); }
-    else { bipeLigado = false; digitalWrite(BUZZER, LOW); bipesRestantes--; }
+  if ((bipesRestantes > 0 || bipeLigado) && (long)(agora - proximaTrocaBipe) >= 0) {
+    if (!bipeLigado) bipeLigado = true;
+    else { bipeLigado = false; bipesRestantes--; }
     proximaTrocaBipe = agora + BIPE_MS;
   }
+  // Pedidos e rejeições têm prioridade, inclusive nas pausas entre seus bipes.
+  bool avisoPontual = bipesRestantes > 0 || bipeLigado;
+  bool bipeEstoque = estoqueBaixo && !avisoPontual &&
+                    (agora - inicioAlertaEstoque) % INTERVALO_ALERTA_MS < BIPE_MS;
+  // O piezo passivo do Wokwi precisa de uma onda audível, não de HIGH constante.
+  buzzer.writeScaled((bipeLigado || bipeEstoque) ? 0.5 : 0.0);
   // LED acende por peça inválida OU por estoque baixo: causas independentes
   digitalWrite(LED_ALERTA, agora < ledInvalidoAte || estoqueBaixo);
 }
 
-// ---------- Balança ----------
+// balança
 void limpaJanela() { nJanela = 0; idxJanela = 0; }
 
 void empurraAmostra(float gramasBalanca) {
@@ -146,7 +149,7 @@ void empurraAmostra(float gramasBalanca) {
   if (nJanela < JANELA) nJanela++;
 }
 
-float mediaJanelaG() {  // em g REAIS
+float mediaJanelaG() {  // em g reais
   if (nJanela == 0) return 0;
   float s = 0;
   for (int i = 0; i < nJanela; i++) s += janela[i];
@@ -160,7 +163,7 @@ bool janelaEstavel() {
   return (mx - mn) / ESCALA_PESO <= TOLERANCIA_ESTAVEL_G;
 }
 
-// Lê sem travar o loop: só lê quando o HX711 sinaliza que há conversão pronta.
+// lê sem travar o loop: só lê quando o HX711 sinaliza que há conversão pronta.
 void amostraBalanca() {
   if (millis() - ultimaAmostra < AMOSTRA_MS || !balanca.is_ready()) return;
   ultimaAmostra = millis();
@@ -169,7 +172,7 @@ void amostraBalanca() {
   pesoAtualG = mediaJanelaG();
 }
 
-// Média de várias leituras (usada na tara e na calibração). Bloqueia por até ~2 s.
+// média de várias leituras (usada na tara e na calibração). Bloqueia por até ~2 s.
 bool mediaRaw(long &saida) {
   long soma = 0;
   int n = 0;
@@ -222,7 +225,7 @@ void processaSerial() {
   }
 }
 
-// ---------- MQTT ----------
+// mqtt
 void publicaStatus(bool online = true) {
   char buf[128];
   snprintf(buf, sizeof(buf), "{\"online\":%s,\"ligado\":%s,\"token\":\"%s\"}",
@@ -238,7 +241,7 @@ void aplicaSeparador(bool ligado) {
   if (mqtt.connected()) publicaStatus();
 }
 
-// Gaveta do carrossel: mesma conta do backend (comprimento × bitola, 15° cada).
+// gaveta do carrossel: mesma conta do backend (comprimento × bitola, 15° cada).
 bool posicaoDaGaveta(int comp, const char* bitola, int &posicao) {
   int ic = -1;
   for (int i = 0; i < NUM_COMPRIMENTOS; i++) if (COMPRIMENTOS_MM[i] == comp) ic = i;
@@ -256,7 +259,7 @@ void aoReceber(char* topico, byte* payload, unsigned int tam) {
     if (doc["ligado"].is<bool>()) aplicaSeparador(doc["ligado"].as<bool>());
     if (doc["tara"].is<bool>() && doc["tara"].as<bool>()) pedirTara = true;
   } else if (strcmp(topico, topicoAlerta) == 0) {
-    if (doc["estoqueBaixo"].is<bool>()) estoqueBaixo = doc["estoqueBaixo"].as<bool>();
+    if (doc["estoqueBaixo"].is<bool>()) aplicaEstoqueBaixo(doc["estoqueBaixo"].as<bool>());
   } else if (strcmp(topico, topicoPedido) == 0) {
     int pos;
     if (posicaoDaGaveta(doc["comp"] | 0, doc["bitola"] | "", pos)) {
@@ -269,7 +272,7 @@ void aoReceber(char* topico, byte* payload, unsigned int tam) {
 
 void publicaEvento(int comp, int bitola, float pesoG, bool valido) {
   if (!mqtt.connected()) {
-    Serial.println("MQTT offline: evento nao enviado");  // TODO: fila em memoria/SPIFFS
+    Serial.println("MQTT offline: evento nao enviado");  // TODO: fila em memoria/spiffs
     return;
   }
   char buf[192];
@@ -313,7 +316,7 @@ void mantemConexoes() {
     String clientId = String("paraflow-") + DEVICE_ID;
     const char* user = strlen(MQTT_USER) ? MQTT_USER : nullptr;
     const char* pass = strlen(MQTT_USER) ? MQTT_PASS : nullptr;
-    // Last Will: se o ESP32 cair, o broker publica online:false (com o token, senão o backend descarta)
+    // se o ESP32 cair, o broker publica online:false (com o token, senão o backend descarta)
     if (mqtt.connect(clientId.c_str(), user, pass, topicoStatus, 1, true, mensagemLwt)) {
       mqtt.subscribe(topicoCmd, 1);
       mqtt.subscribe(topicoAlerta, 1);
@@ -327,8 +330,8 @@ void mantemConexoes() {
   mqtt.loop();
 }
 
-// ---------- Sensores de comprimento ----------
-// Detecta a BORDA (solto → pressionado): segurar o botão não conta a peça de novo.
+// sensores de comprimento
+// detecta a borda (solto -> pressionado): segurar o botão não conta a peça de novo.
 int detectaComprimento() {
   int achado = -1;
   for (int i = 0; i < NUM_COMPRIMENTOS; i++) {
@@ -364,7 +367,7 @@ int identificaBitola(int idxComp, float pesoG) {
 
 void moverCarrossel(int idxComp, int bitola) { carrossel.write((idxComp * NUM_BITOLAS + bitola) * 15); }
 
-// ---------- Máquina de estados: 1 peça por vez ----------
+// máquina de estados: 1 peça por vez
 void finalizaPeca(float pesoG, bool estavel) {
   int comp = COMPRIMENTOS_MM[comprimentoAtual];
   int bitola = (estavel && pesoG >= PESO_MINIMO_G) ? identificaBitola(comprimentoAtual, pesoG) : -1;
@@ -400,7 +403,7 @@ void processaPeca() {
   else if (decorrido > TIMEOUT_PESO_MS) finalizaPeca(mediaJanelaG(), false);  // não estabilizou: rejeita
 }
 
-// Tarefas que mexem na balança/carrossel só rodam com o prato livre (nenhuma peça sendo medida).
+// tarefas que mexem na balança/carrossel só rodam com o prato livre (nenhuma peça sendo medida).
 void tarefasPendentes() {
   if (estado != LIVRE) return;
   if (pedirTara) { pedirTara = false; tararBalanca(); }
@@ -412,7 +415,7 @@ void tarefasPendentes() {
   }
 }
 
-// ---------- Arduino ----------
+// arduino
 void setup() {
   Serial.begin(115200);
 
@@ -423,6 +426,9 @@ void setup() {
   pinMode(RELE_SEPARADOR, OUTPUT);
   pinMode(BUZZER, OUTPUT);
   carrossel.attach(PIN_SERVO);
+  // A mesma biblioteca aloca timers distintos para o servo (50 Hz) e o buzzer.
+  buzzer.attachPin(BUZZER, FREQUENCIA_BUZZER_HZ, 10);
+  buzzer.writeScaled(0.0);
   aplicaSeparador(true);
 
   prefs.begin("paraflow", false);

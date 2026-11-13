@@ -58,7 +58,7 @@ export default function Pedidos() {
         metodo: 'POST',
         corpo: { bitola: form.bitola, comprimentoMm: Number(form.comprimentoMm), quantidade: Number(form.quantidade) },
       });
-      aviso('Pedido feito! As peças já foram separadas do estoque.');
+      aviso('Pedido criado. As peças estão reservadas; confirme a retirada depois de recolhê-las.');
       setForm((f) => ({ ...f, quantidade: 1 }));
       carregar();
     } catch (err) {
@@ -83,7 +83,7 @@ export default function Pedidos() {
   return (
     <>
       <h1>Pedido de parafusos</h1>
-      <p className="app-sub">Escolha o tipo, o comprimento e a quantidade. As peças saem do estoque na hora e a máquina posiciona a gaveta certa.</p>
+      <p className="app-sub">Reserve as peças de que precisa. A máquina recebe um aviso para posicionar a gaveta; confirme a retirada após recolher os parafusos.</p>
 
       <div className="pilha">
         <section className="painel">
@@ -112,7 +112,7 @@ export default function Pedidos() {
           )}
           <p className="msg-app" style={{ marginTop: 10 }}>
             Disponível: <b>{disponivel.toLocaleString('pt-BR')}</b> peça(s) de {form.bitola} × {form.comprimentoMm} mm
-            {disponivel === 0 && ' — sem estoque deste tipo'}
+            {disponivel === 0 && ' (sem estoque deste tipo)'}
           </p>
           {erros.quantidade && <p className="msg-app erro" role="alert">{erros.quantidade}</p>}
         </section>
@@ -122,7 +122,7 @@ export default function Pedidos() {
           {!lista ? <p className="vazio">Carregando...</p> : lista.itens.length === 0 ? (
             <p className="vazio">Nenhum pedido ainda.</p>
           ) : (
-            <div className="tabela-wrap">
+            <div className="tabela-wrap tabela-rolagem">
               <table className="tabela">
                 <thead><tr><th>Quando</th><th>Quem</th><th>Parafuso</th><th>Qtd</th><th>Situação</th><th /></tr></thead>
                 <tbody>
@@ -138,7 +138,7 @@ export default function Pedidos() {
                         <td>
                           {pode && (
                             <span className="acoes">
-                              <button className="btn btn-solido btn-sm" onClick={() => acao(p, 'retirar')}>Retirei</button>
+                              <button className="btn btn-solido btn-sm" onClick={() => acao(p, 'retirar')}>Confirmar retirada</button>
                               <button className="btn btn-perigo btn-sm" onClick={() => acao(p, 'cancelar')}>Cancelar</button>
                             </span>
                           )}

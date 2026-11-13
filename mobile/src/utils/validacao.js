@@ -1,4 +1,4 @@
-// Mesmas regras do backend e do web. O servidor sempre revalida.
+// mesmas regras do backend e do web. O servidor sempre revalida.
 export const requisitosSenha = {
   tamanho: (v) => v.length >= 8,
   letra: (v) => /[a-zA-ZÀ-ÿ]/.test(v),

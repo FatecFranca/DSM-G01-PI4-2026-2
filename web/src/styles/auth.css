@@ -90,7 +90,7 @@
 
 .form .btn { height: 60px; font-size: 1.1rem; letter-spacing: .08em; }
 
-/* ===== Responsivo ===== */
+/* responsivo */
 @media (max-width: 1100px) { .painel-login { padding: 36px 28px; } }
 @media (max-width: 860px) {
   .auth-body { padding: 0; }

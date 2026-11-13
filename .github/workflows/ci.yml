@@ -8,8 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm install
+        with: { node-version: 24.19.0, cache: npm }
+      - run: npm ci
       - name: Checar sintaxe do backend
         run: for f in $(find backend/src backend/scripts -name '*.js'); do node --check "$f"; done
       - name: Build do web

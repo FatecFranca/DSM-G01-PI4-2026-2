@@ -17,7 +17,7 @@ router.get('/resumo', validar(resumoQuerySchema, 'query'), asyncHandler(async (r
   res.json({ dias: await estoque.resumoDiario(req.usuario.organizacaoId, req.dados) });
 }));
 
-// Simulação sem hardware (apenas com ALLOW_SIMULATION=true), usando uma máquina da SUA organização.
+// simulação sem hardware (apenas com ALLOW_SIMULATION=true), usando uma máquina da sua organização.
 router.post('/', validar(eventoSchema), asyncHandler(async (req, res) => {
   if (!env.allowSimulation) {
     throw new AppError(403, 'Simulação desabilitada neste ambiente.', { codigo: 'SIMULACAO_OFF' });

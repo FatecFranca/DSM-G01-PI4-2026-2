@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../services/api.js';
 import { useAuth } from '../hooks/useAuth.jsx';
+import Simulador from '../components/Simulador.jsx';
 
 export default function Configuracoes() {
   const { usuario } = useAuth();
@@ -109,8 +110,7 @@ export default function Configuracoes() {
             <div className="token-box" role="status">
               <strong>Copie agora: o token não será mostrado de novo.</strong>
               <pre>{trechoSecrets}</pre>
-              <p>Cole essas duas linhas no <code>iot/secrets.h</code> do ESP32 e grave o firmware. Para testar sem hardware:
-                {' '}<code>npm run simular -- {segredo.deviceId} {segredo.token}</code></p>
+              <p>Cole essas duas linhas no <code>iot/secrets.h</code> do ESP32 e grave o firmware. Para testar a contagem sem hardware, use o simulador abaixo.</p>
               <button className="btn btn-contorno btn-sm" style={{ marginTop: 12 }}
                       onClick={() => navigator.clipboard?.writeText(trechoSecrets)}>Copiar</button>
             </div>
@@ -119,13 +119,14 @@ export default function Configuracoes() {
 
         <section className="painel">
           <h2>Regras do estoque</h2>
-          <p className="app-sub" style={{ marginBottom: 0 }}>Avisar “estoque baixo” quando uma bitola tiver menos peças que este limite.</p>
+          <p className="app-sub" style={{ marginBottom: 0 }}>Avisar “estoque baixo” quando qualquer combinação de bitola e comprimento tiver menos peças que este limite. Exemplo: M3 de 5 mm com 20 peças aciona um limite de 30, independentemente dos outros comprimentos.</p>
           <form className="form-inline" onSubmit={salvarLimite}>
             <input type="number" min="0" value={limite} onChange={(e) => setLimite(e.target.value)}
                    aria-label="Limite de estoque baixo" disabled={!dono || !config} />
             {dono && <button className="btn btn-solido btn-sm" type="submit">Salvar</button>}
           </form>
         </section>
+        {dono && <Simulador maquinas={maquinas} />}
       </div>
 
       {msg.texto && <p className={`msg-app${msg.erro ? ' erro' : ''}`} role={msg.erro ? 'alert' : 'status'}>{msg.texto}</p>}

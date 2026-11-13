@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/* ---------- Regras de senha (as mesmas do cadastro no web/mobile) ---------- */
+/* regras de senha (as mesmas do cadastro no web/mobile) */
 const senhaForte = z
   .string()
   .min(8, 'A senha precisa ter 8+ caracteres.')
@@ -53,6 +53,11 @@ export const dispositivoCriarSchema = z.object({
   nome: z.string().trim().min(2, 'Dê um nome para a máquina.').max(40, 'Nome muito longo.'),
 });
 
+export const simuladorSchema = z.object({
+  ativo: z.boolean(),
+  deviceId: z.string().min(1).max(40).optional(),
+}).refine((s) => !s.ativo || !!s.deviceId, { message: 'Escolha uma máquina.', path: ['deviceId'] });
+
 export const loginSchema = z.object({
   identificador: z.string().trim().toLowerCase().min(1, 'Informe usuário ou e-mail.'),
   senha: z.string().min(1, 'Informe a senha.').max(72),
@@ -63,7 +68,7 @@ export const disponibilidadeSchema = z.object({
   email: z.string().trim().toLowerCase().optional(),
 });
 
-/* ---------- Evento de peça (payload MQTT e POST /eventos) ---------- */
+/* evento de peça (payload MQTT e POST /eventos) */
 export const eventoSchema = z
   .object({
     comp: z.coerce.number().int().positive(),

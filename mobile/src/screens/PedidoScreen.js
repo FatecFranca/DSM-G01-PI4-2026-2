@@ -64,7 +64,7 @@ export default function PedidoScreen({ navigation }) {
     setEnviando(true);
     try {
       await api('/pedidos', { metodo: 'POST', corpo: { bitola, comprimentoMm: comp, quantidade: n } });
-      setMsg({ texto: 'Pedido feito! As peças já saíram do estoque.', erro: false });
+      setMsg({ texto: 'Peças reservadas. Confirme a retirada após recolhê-las.', erro: false });
       setQtd('1');
       carregar();
     } catch (e) {

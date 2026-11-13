@@ -19,10 +19,8 @@ const publico = (p) => ({
   canceladoEm: p.canceladoEm,
 });
 
-/**
- * Fila por organização: dois pedidos simultâneos não "gastam" o mesmo estoque.
- * (Vale para UMA instância do backend. Com várias instâncias seria preciso uma transação ou um lock no banco.)
- */
+// uma fila por organização, para dois pedidos ao mesmo tempo não gastarem o mesmo estoque
+// (vale para uma instância só do backend)
 const filas = new Map();
 function serializar(chave, fn) {
   const anterior = filas.get(chave) ?? Promise.resolve();

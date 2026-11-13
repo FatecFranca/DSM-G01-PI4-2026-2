@@ -1,24 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "paraflow-web",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^7.18.5",
-    "socket.io-client": "^4.8.1"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^6.2.1",
-    "vite": "^8.3.5"
-=======
   "name": "paraflow",
   "private": true,
   "version": "0.1.0",
@@ -31,7 +11,8 @@
     "dev:web": "npm run dev -w web",
     "dev:mobile": "npm --prefix mobile run start",
     "simular": "npm run simular -w backend",
-    "build:web": "npm run build -w web"
->>>>>>> a6520f112af4da559be136a5c64083c363a7fd2a
+    "build:web": "npm run build -w web",
+    "build": "npm run build:web",
+    "start": "npm run start -w backend"
   }
 }

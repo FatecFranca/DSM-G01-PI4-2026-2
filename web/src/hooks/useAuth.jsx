@@ -3,10 +3,7 @@ import { api, definirAoExpirar, lerToken, limparToken, salvarToken } from '../se
 
 const AuthContext = createContext(null);
 
-/**
- * A sessão só vale se o SERVIDOR confirmar: ao abrir o app e a cada troca de rota
- * protegida chamamos GET /api/auth/me. Ter um token guardado não basta.
- */
+// a sessão só vale se o servidor confirmar em GET /api/auth/me; só ter o token guardado não basta
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);

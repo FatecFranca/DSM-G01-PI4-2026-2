@@ -1,10 +1,6 @@
-/**
- * Simula um ESP32 publicando peças no MQTT (sem hardware).
- * Antes, cadastre uma máquina no site (Configurações → Máquinas) e copie o DEVICE_ID e o TOKEN.
- *
- * Uso:  npm run simular -- <deviceId> <token> [quantidade] [intervaloMs]
- * Ex.:  npm run simular -- pf-a1b2c3d4 0123456789abcdef0123456789abcdef 30 300
- */
+// simula um ESP32 mandando peças pelo MQTT, sem precisar do hardware
+// uso: npm run simular -- <deviceId> <token> [quantidade] [intervaloMs]
+// o deviceId e o token aparecem ao cadastrar a máquina no site (Configurações > Máquinas)
 import 'dotenv/config';
 import mqtt from 'mqtt';
 

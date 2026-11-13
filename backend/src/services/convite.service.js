@@ -20,7 +20,7 @@ const invalido = () =>
 const publico = (c) => ({ id: String(c._id), papel: c.papel, expiraEm: c.expiraEm, criadoEm: c.createdAt });
 const valido = (codigo) => ({ codigoHash: hash(codigo), usadoEm: null, expiraEm: { $gt: new Date() } });
 
-/** Cria o convite. O código completo volta UMA vez, nesta resposta. */
+/** Cria o convite. O código completo volta uma vez, nesta resposta. */
 export async function criarConvite(organizacaoId, criadoPor, { papel, dias }) {
   const bruto = crypto.randomBytes(5).toString('hex').toUpperCase(); // 10 caracteres
   const c = await Convite.create({
@@ -46,7 +46,7 @@ export async function revogarConvite(organizacaoId, id) {
   if (!r.deletedCount) throw new AppError(404, 'Convite não encontrado.', { codigo: 'NAO_ENCONTRADO' });
 }
 
-/** Mostra a empresa do convite ANTES do cadastro (sem consumir). */
+/** Mostra a empresa do convite antes do cadastro (sem consumir). */
 export async function previaConvite(codigo) {
   const c = await Convite.findOne(valido(codigo)).lean();
   if (!c) throw invalido();

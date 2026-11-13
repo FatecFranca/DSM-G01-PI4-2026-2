@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 
-/** Rota protegida: confirma a sessão no servidor (GET /api/auth/me) a cada navegação. */
+/** Rota protegida: confirma a sessão no servidor (get /api/auth/me) a cada navegação. */
 export function ProtectedRoute() {
   const { usuario, carregando, revalidar } = useAuth();
   const local = useLocation();

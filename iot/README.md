@@ -1,45 +1,54 @@
-# IoT (ESP32 + célula de carga de 5 kg)
+# IoT (ESP32 e célula de carga)
 
-Firmware do separador. Publica **um evento JSON por peça** e a **leitura ao vivo da balança**; o estoque é calculado no backend.
+Firmware do separador. Para cada peça publica um evento no MQTT e, uma vez por segundo, o peso da balança.
 
 ## Arquivos
-- `sketch.ino`: firmware (HX711, MQTT, estabilização da balança, tara, calibração, pedidos)
-- `diagram.json`: circuito do Wokwi (ESP32 + HX711 de 5 kg + 4 botões de comprimento + botão de tara + servo + relé + LEDs + buzzer)
-- `libraries.txt`: PubSubClient, ArduinoJson, ESP32Servo, HX711
-- `secrets.example.h`: modelo de credenciais → copie para `secrets.h` (ignorado pelo git)
-- `wokwi-project.txt`: mantenha o seu atual
 
-## Vincular a máquina à sua organização
-No site: **Configurações → Máquinas → Adicionar máquina**. Copie `DEVICE_ID` e `DEVICE_TOKEN` (o token aparece uma vez) para o `secrets.h`. O backend só aceita mensagens de máquinas com `deviceId` + token válidos.
+- `sketch.ino`: o firmware
+- `diagram.json`: circuito do Wokwi (ESP32, HX711 de 5 kg, botões de comprimento, botão de tara, servo, relé, LEDs e buzzer)
+- `libraries.txt`: PubSubClient, ArduinoJson, ESP32Servo e HX711
+- `secrets.example.h`: modelo das credenciais; copie para `secrets.h`, que não vai para o git
 
-## Simular no Wokwi
-1. Substitua o `diagram.json`, o `sketch.ino` e o `libraries.txt` do projeto Wokwi pelos desta pasta e crie o `secrets.h`.
-2. Use um broker que o backend também alcance (ex.: `broker.hivemq.com` com **prefixo único**, igual em `TOPIC_PREFIX` e `MQTT_TOPIC_PREFIX`).
-3. **Botões 5/10/15/20 mm** = sensores de comprimento. **Célula de carga:** ajuste o peso no controle da própria célula. Com `ESCALA_PESO = 100`, a balança "vê" 100× o peso real: **105 g na célula = 1,05 g real (M3 de 10 mm)**. O botão branco zera a balança (tara).
-4. Entre as peças, volte o peso para perto de 0 se quiser, mas não é obrigatório: cada peça é medida quando você aperta o botão de comprimento e a leitura estabiliza.
+## Ligando a máquina ao sistema
 
-### O que mudou em relação ao potenciômetro
-- **Estabilização:** a peça só é classificada quando a leitura fica estável (janela de 6 amostras, tolerância 0,04 g). Se não estabilizar em 2,5 s, é **rejeitada**.
-- **Balança ao vivo:** o peso é enviado ~1x/s (`telemetria`) e aparece no dashboard.
-- **Tara:** botão no circuito, comando `t` no Serial ou botão "Zerar balança" no site. A balança também é zerada ao ligar (prato vazio).
-- **Pedido de parafusos:** quando alguém faz um pedido no site/app, o carrossel gira para a gaveta daquele tipo e o buzzer apita 2x.
-- **Correção no circuito:** o diagrama antigo **não ligava o sinal do servo** (faltava `servo1:PWM → esp:18`); agora está ligado.
+No site, em Configurações, adicione uma máquina e copie o `DEVICE_ID` e o `DEVICE_TOKEN` (o token aparece uma vez) para o `secrets.h`. O `TOPIC_PREFIX` precisa ser igual ao `MQTT_TOPIC_PREFIX` do backend.
 
-## Calibração (importante)
-O fator padrão (`419,43` contagens/g) é o valor **teórico** de uma célula de 5 kg de 1 mV/V. Cada célula real difere, então calibre:
-1. Abra o Serial Monitor (115200), deixe o prato **vazio** e envie `t`.
-2. Coloque um peso conhecido (ex.: 1000 g) e envie `c1000`. O fator é calculado e **salvo** na memória do ESP32.
-3. `p` mostra o offset e o fator; `z` volta ao padrão.
+## Wokwi
 
-> **Atenção ao hardware real:** uma célula de **5 kg tem resolução de cerca de 1 g**, e os parafusos do projeto (M2–M4, 5–20 mm) pesam **0,3 a 3,3 g**, a mesma ordem de grandeza do ruído. No simulador funciona porque ele é ideal. Na montagem física use uma célula de **50 a 500 g** (ou pese vários parafusos de uma vez). Esse é o "ponto crítico: identificação por peso" do briefing.
+1. Troque o `diagram.json`, o `sketch.ino` e o `libraries.txt` do projeto pelos desta pasta e crie o `secrets.h` (o Wokwi não lê o arquivo do seu computador).
+2. Use um broker que o backend também alcance, por exemplo `broker.hivemq.com` com um prefixo só seu.
+3. Os botões de 5, 10, 15 e 20 mm fazem o papel dos sensores de comprimento. O peso se ajusta no controle da célula de carga. Com `ESCALA_PESO = 100`, 105 g na célula valem 1,05 g reais (um M3 de 10 mm). O botão branco zera a balança.
 
-## Comandos pelo Serial
-| Comando | O que faz |
-|---|---|
-| `t` | Zera a balança (tara) |
-| `c<gramas>` | Calibra com um peso conhecido, ex.: `c1000` |
-| `p` | Mostra offset, fator, escala e peso atual |
-| `z` | Restaura o fator padrão |
+Se o Wokwi não aceitar algum nome de pino do HX711, religue os fios: VCC no 3V3, GND no GND, DT no pino 16 e SCK no 17.
 
-## Segurança
-O token do Blynk que existia no `sketch.ino` original foi removido. **Revogue-o no Blynk.** Nunca commite o `secrets.h`.
+## Como a peça é medida
+
+Ao apertar o botão de comprimento, o firmware espera a peça assentar e a leitura ficar estável (6 amostras com variação de até 0,04 g). Se não estabilizar em 2,5 s, a peça é rejeitada. Depois compara o peso com a tabela de cada comprimento para achar a bitola.
+
+Quando alguém faz um pedido no site, o carrossel gira até a gaveta daquele tipo e o buzzer apita duas vezes.
+
+### Alarme de estoque baixo
+
+Ao receber `{"estoqueBaixo":true}` no tópico `<TOPIC_PREFIX>/<DEVICE_ID>/alerta`, o LED vermelho acende e o buzzer emite um bipe de 150 ms imediatamente, repetido a cada 5 segundos. Ao receber `false`, o alarme de estoque para. Os dois bipes de pedido e o bipe de peça rejeitada têm prioridade e continuam funcionando, mesmo sem alerta de estoque.
+
+O buzzer passivo do Wokwi usa um sinal de 2000 Hz no GPIO 33. O firmware usa `ESP32PWM`, já incluído na biblioteca ESP32Servo, para gerar o som sem bloquear o loop e sem compartilhar o timer do servo.
+
+Para conferir na simulação:
+
+1. Atualize o `sketch.ino` do projeto Wokwi e mantenha o áudio do navegador habilitado.
+2. Com backend e ESP32 conectados ao mesmo broker/prefixo, registre ao menos uma peça válida e ajuste o limite de estoque baixo no site para ficar acima do disponível de alguma combinação de bitola e comprimento. Por exemplo, M3 de 5 mm com 20 peças aciona um limite de 30, mesmo com muitos M3 de outros comprimentos. Com nenhuma entrada registrada, o alarme é suprimido; depois disso, combinações zeradas também alertam.
+3. Confira o LED vermelho e um bipe imediato, seguido de outro a cada 5 segundos. O alerta também funciona com o separador desligado pelo site.
+4. Ajuste o limite para zero: o LED deve apagar e os bipes de estoque devem parar. Um pedido ainda deve produzir dois bipes, e uma peça rejeitada, um.
+
+## Calibração
+
+O fator padrão (419,43 contagens por grama) é o valor teórico de uma célula de 5 kg. Para calibrar a sua, abra o Serial Monitor (115200):
+
+1. Deixe o prato vazio e envie `t` (tara).
+2. Coloque um peso conhecido, por exemplo 1000 g, e envie `c1000`. O fator fica salvo na memória.
+
+Outros comandos: `p` mostra os valores e `z` volta ao fator padrão.
+
+## Atenção
+
+Uma célula de 5 kg tem resolução de cerca de 1 g, e os parafusos do projeto pesam de 0,3 a 3,3 g. No simulador funciona porque ele é ideal. Na montagem real, use uma célula de 50 a 500 g ou pese vários parafusos de uma vez.

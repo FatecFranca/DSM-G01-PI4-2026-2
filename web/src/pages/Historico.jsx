@@ -74,7 +74,7 @@ export default function Historico() {
                       <tr key={e._id}>
                         <td>{fmtData(e.ocorridoEm)}</td>
                         <td>{e.comprimentoMm} mm</td>
-                        <td>{e.bitola ?? '—'}</td>
+                        <td>{e.bitola ?? '-'}</td>
                         <td>{e.peso.toFixed(2)}</td>
                         <td className={e.valido ? '' : 'invalida'}>{e.valido ? 'Válida' : 'Rejeitada'}</td>
                       </tr>

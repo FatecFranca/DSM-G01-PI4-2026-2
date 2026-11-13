@@ -4,9 +4,9 @@ import { app } from './app.js';
 import { conectarBanco, desconectarBanco } from './config/db.js';
 import { iniciarSockets, fecharSockets } from './sockets/index.js';
 import { iniciarMqtt, encerrarMqtt } from './services/mqtt.service.js';
+import { simulador } from './services/simulador.service.js';
 
-// Ordem de subida: banco → HTTP + WebSocket → MQTT.
-// As rotas ficam em src/routes/index.js (montadas em /api pelo app.js).
+// sobe o banco, depois HTTP + WebSocket e por fim o MQTT
 async function main() {
   await conectarBanco();
 
@@ -15,12 +15,13 @@ async function main() {
   iniciarMqtt();
 
   server.listen(env.PORT, () => {
-    console.log(`🚀 Paraflow API em http://localhost:${env.PORT}/api  (${env.NODE_ENV})`);
+    console.log(`[api] rodando em http://localhost:${env.PORT}/api (${env.NODE_ENV})`);
   });
 
   const encerrar = async (sinal) => {
     console.log(`\n${sinal} recebido, encerrando...`);
     server.close();
+    await simulador.encerrar();
     await Promise.allSettled([fecharSockets(), encerrarMqtt(), desconectarBanco()]);
     process.exit(0);
   };
@@ -29,6 +30,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error('❌ Falha ao iniciar:', e.message);
+  console.error('[api] falha ao iniciar:', e.message);
   process.exit(1);
 });

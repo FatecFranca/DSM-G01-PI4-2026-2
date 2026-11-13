@@ -31,7 +31,7 @@ export function tratarErros(err, req, res, _next) {
     return res.status(400).json({ erro: 'JSON inválido.', codigo: 'JSON_INVALIDO' });
   }
 
-  console.error('💥 Erro não tratado:', err);
+  console.error('[erro] erro não tratado:', err);
   res.status(500).json({
     erro: 'Erro interno do servidor.',
     codigo: 'INTERNO',

@@ -1,4 +1,4 @@
-// Cliente HTTP único. Em dev o Vite faz proxy de /api → backend (veja vite.config.js).
+// cliente HTTP único. Em dev o Vite faz proxy de /api -> backend (veja vite.config.js).
 const BASE = `${import.meta.env.VITE_API_URL ?? ''}/api`;
 const CHAVE = 'paraflow:token';
 
@@ -26,7 +26,7 @@ export const salvarToken = (token, lembrar) => {
 let aoExpirar = () => {};
 export const definirAoExpirar = (fn) => { aoExpirar = fn; };
 
-export async function api(caminho, { metodo = 'GET', corpo, query } = {}) {
+export async function api(caminho, { metodo = 'GET', corpo, query, signal } = {}) {
   const qs = query ? `?${new URLSearchParams(Object.entries(query).filter(([, v]) => v !== '' && v != null))}` : '';
   const token = lerToken();
 
@@ -34,13 +34,15 @@ export async function api(caminho, { metodo = 'GET', corpo, query } = {}) {
   try {
     resp = await fetch(`${BASE}${caminho}${qs}`, {
       method: metodo,
+      signal,
       headers: {
         ...(corpo && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: corpo ? JSON.stringify(corpo) : undefined,
     });
-  } catch {
+  } catch (e) {
+    if (e.name === 'AbortError') throw e;
     throw new ApiError(0, { erro: 'Não foi possível falar com o servidor. Verifique sua conexão.', codigo: 'REDE' });
   }
 

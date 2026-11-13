@@ -5,7 +5,7 @@ import { conviteCriarSchema, membroCriarSchema, papelSchema } from '../utils/sch
 import * as equipe from '../services/equipe.service.js';
 import * as convites from '../services/convite.service.js';
 
-// Todas as rotas daqui exigem o papel "dono" (aplicado em routes/index.js).
+// todas as rotas daqui exigem o papel "dono" (aplicado em routes/index.js).
 const router = Router();
 
 router.get('/', asyncHandler(async (req, res) => {

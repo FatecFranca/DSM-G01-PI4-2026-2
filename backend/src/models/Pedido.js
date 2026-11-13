@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
 
-/**
- * Pedido de parafusos: um operador "retira" parafusos do estoque.
- * aberto    → as peças já estão reservadas (saem do estoque na hora)
- * retirado  → o operador confirmou que pegou
- * cancelado → as peças voltam ao estoque
- */
+// pedido de parafusos: aberto (peças reservadas), retirado ou cancelado (as peças voltam ao estoque)
 const pedidoSchema = new mongoose.Schema(
   {
     organizacaoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organizacao', required: true },

@@ -1,10 +1,7 @@
 import { AppError } from '../utils/AppError.js';
 import { usuarioDoToken } from '../services/auth.service.js';
 
-/**
- * Exige "Authorization: Bearer <jwt>" e CONFIRMA no banco que o usuário
- * ainda existe. Ou seja: o servidor é quem decide se a sessão vale.
- */
+// confere o token e se o usuário ainda existe no banco
 export async function autenticar(req, _res, next) {
   try {
     const [tipo, token] = (req.headers.authorization ?? '').split(' ');

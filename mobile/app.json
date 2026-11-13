@@ -6,11 +6,13 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#070b16",
+    "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "br.paraflow.app"
     },
     "android": {
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#0a1628" },
       "package": "br.paraflow.app"
     },
     "plugins": [

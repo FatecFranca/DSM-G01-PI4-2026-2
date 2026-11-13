@@ -3,7 +3,7 @@ import { api, carregarTokenSalvo, definirAoExpirar, limparToken, salvarToken } f
 
 const AuthContext = createContext(null);
 
-/** Ao abrir o app, o token salvo só vale se o servidor responder OK em GET /api/auth/me. */
+/** Ao abrir o app, o token salvo só vale se o servidor responder OK em get /api/auth/me. */
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);

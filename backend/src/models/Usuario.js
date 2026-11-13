@@ -7,7 +7,7 @@ const usuarioSchema = new mongoose.Schema(
     usuario: { type: String, required: true, unique: true, lowercase: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     senhaHash: { type: String, required: true, select: false },
-    // dono: gerencia máquinas, regras e (na etapa 2) a equipe. operador: só opera e consulta.
+    // dono gerencia máquinas, regras e equipe; operador só opera e consulta
     papel: { type: String, enum: ['dono', 'operador'], default: 'operador' },
   },
   { timestamps: true }

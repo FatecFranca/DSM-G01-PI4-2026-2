@@ -9,10 +9,11 @@ import configRoutes from './config.routes.js';
 import dispositivoRoutes from './dispositivo.routes.js';
 import equipeRoutes from './equipe.routes.js';
 import pedidosRoutes from './pedidos.routes.js';
+import simuladorRoutes from './simulador.routes.js';
 
 const router = Router();
 
-// ---- públicas ----
+// públicas
 router.get('/health', (_req, res) => {
   const banco = bancoConectado();
   res.status(banco ? 200 : 503).json({
@@ -24,10 +25,11 @@ router.get('/health', (_req, res) => {
 });
 router.use('/auth', authRoutes);
 
-// ---- protegidas: o servidor valida o token a cada requisição ----
+// protegidas: o servidor valida o token a cada requisição
 router.use('/estoque', autenticar, estoqueRoutes);
 router.use('/eventos', autenticar, eventosRoutes);
 router.use('/config', autenticar, configRoutes);
+router.use('/simulador', autenticar, exigirDono, simuladorRoutes);
 router.use('/dispositivo', autenticar, dispositivoRoutes);
 router.use('/pedidos', autenticar, pedidosRoutes);
 router.use('/equipe', autenticar, exigirDono, equipeRoutes); // só o dono gerencia a equipe

@@ -41,18 +41,14 @@ async function garantirLivre(usuario, email) {
   }
 }
 
-/** Cria um usuário já dentro de uma organização (usado pelo dono em Equipe → criar usuário). */
+/** Cria um usuário já dentro de uma organização (usado pelo dono em Equipe -> criar usuário). */
 export async function criarUsuario({ nome, usuario, email, senha, organizacaoId, papel = 'operador' }) {
   await garantirLivre(usuario, email);
   const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
   return Usuario.create({ nome, usuario, email, senhaHash, organizacaoId, papel });
 }
 
-/**
- * Cadastro público. Dois caminhos:
- *  - `organizacao`: cria a empresa e o usuário vira dono;
- *  - `codigoConvite`: entra numa empresa existente com o papel definido no convite.
- */
+// cadastro público: cria a empresa (o usuário vira dono) ou entra numa empresa por código de convite
 export async function registrar({ nome, usuario, email, senha, organizacao, codigoConvite }) {
   await garantirLivre(usuario, email);
   const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);

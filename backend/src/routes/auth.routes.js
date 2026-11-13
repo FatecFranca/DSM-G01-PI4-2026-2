@@ -28,12 +28,12 @@ router.post('/login', limitador, validar(loginSchema), asyncHandler(async (req, 
 // O front chama isto a cada carga/rota protegida: quem valida a sessão é o servidor.
 router.get('/me', autenticar, (req, res) => res.json({ usuario: req.usuario }));
 
-// Checagem em tempo real de usuário/e-mail livres no cadastro.
+// checagem em tempo real de usuário/e-mail livres no cadastro.
 router.get('/disponibilidade', limitador, validar(disponibilidadeSchema, 'query'), asyncHandler(async (req, res) => {
   res.json(await auth.disponibilidade(req.dados));
 }));
 
-// Mostra de qual empresa é o convite antes de cadastrar (não consome o código).
+// mostra de qual empresa é o convite antes de cadastrar (não consome o código).
 router.get('/convite/:codigo', limitador, asyncHandler(async (req, res) => {
   res.json(await previaConvite(req.params.codigo));
 }));

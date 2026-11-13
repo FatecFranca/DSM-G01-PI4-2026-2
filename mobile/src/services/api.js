@@ -11,7 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-// Token em memória (sempre) + SecureStore (só quando "lembrar de mim").
+// o token fica em memória e, se marcar "lembrar de mim", também no SecureStore
 let tokenMemoria = null;
 export const lerTokenMemoria = () => tokenMemoria;
 
@@ -45,7 +45,7 @@ export async function api(caminho, { metodo = 'GET', corpo, query } = {}) {
       body: corpo ? JSON.stringify(corpo) : undefined,
     });
   } catch {
-    throw new ApiError(0, { erro: 'Sem conexão com o servidor. Confira EXPO_PUBLIC_API_URL e a rede.' });
+    throw new ApiError(0, { erro: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.' });
   }
   const json = await resp.json().catch(() => null);
   if (!resp.ok) {

@@ -13,7 +13,7 @@ router.get('/', asyncHandler(async (req, res) => {
   res.json({ dispositivos: await listarDispositivos(req.usuario.organizacaoId) });
 }));
 
-// Vincular máquina nova (só o dono). O token volta UMA vez nesta resposta.
+// vincular máquina nova (só o dono). O token volta uma vez nesta resposta.
 router.post('/', exigirDono, validar(dispositivoCriarSchema), asyncHandler(async (req, res) => {
   res.status(201).json(await criarDispositivo(req.usuario.organizacaoId, req.dados));
 }));

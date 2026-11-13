@@ -8,7 +8,7 @@ import { publicarComando } from './mqtt.service.js';
 const hash = (token) => crypto.createHash('sha256').update(token).digest('hex');
 const gerarToken = () => crypto.randomBytes(16).toString('hex'); // 32 caracteres
 
-/** Formato público: NUNCA inclui o hash do token. */
+/** Formato público: nunca inclui o hash do token. */
 const publico = (d) => ({
   id: String(d._id),
   deviceId: d.deviceId,
@@ -28,7 +28,7 @@ export async function listarDispositivos(organizacaoId) {
   return lista.map(publico);
 }
 
-/** Vincula uma máquina nova à organização. O token aparece UMA vez, aqui. */
+/** Vincula uma máquina nova à organização. O token aparece uma vez, aqui. */
 export async function criarDispositivo(organizacaoId, { nome }) {
   const token = gerarToken();
   const deviceId = `pf-${crypto.randomBytes(4).toString('hex')}`;
@@ -58,7 +58,7 @@ export async function removerDispositivo(organizacaoId, id) {
 export async function dispositivoDaOrganizacao(organizacaoId, deviceId) {
   const d = await Dispositivo.findOne({ organizacaoId, ...(deviceId && { deviceId }) }).sort({ createdAt: 1 });
   if (!d) {
-    throw new AppError(404, 'Nenhuma máquina vinculada. Adicione uma em Configurações → Máquinas.', {
+    throw new AppError(404, 'Nenhuma máquina vinculada. Adicione uma em Configurações > Máquinas.', {
       codigo: 'SEM_MAQUINA',
     });
   }
@@ -74,10 +74,7 @@ export async function escolherDispositivo(organizacaoId, deviceId) {
   );
 }
 
-/**
- * Usado pelo MQTT: confere deviceId + token. Retorna o dispositivo (com a organização)
- * ou null. Comparação em tempo constante.
- */
+// usado pelo MQTT: confere deviceId e token, devolve o dispositivo ou null
 export async function autenticarDispositivo(deviceId, token) {
   if (!deviceId || typeof token !== 'string' || !token) return null;
   const d = await Dispositivo.findOne({ deviceId }).select('+tokenHash');
@@ -99,16 +96,13 @@ export async function atualizarStatus(dispositivo, { online, ligado }) {
   return publico(d);
 }
 
-/**
- * Envia o comando ao ESP32 via MQTT. Responde "enviado": quem confirma é o próprio
- * dispositivo, publicando o novo status (que chega por WebSocket).
- */
+// manda o comando pelo MQTT; quem confirma é o próprio dispositivo, pelo status
 export async function enviarComando(organizacaoId, deviceId, { ligado, tara }) {
   const d = await dispositivoDaOrganizacao(organizacaoId, deviceId);
   let ok = true;
   // ligar/desligar fica "retido" no broker (a máquina obedece ao reconectar).
   if (ligado !== undefined) ok = (await publicarComando(d.deviceId, { ligado }, true)) && ok;
-  // tara é um gesto pontual: NÃO pode ficar retida, senão zeraria a balança a cada reconexão.
+  // tara é um gesto pontual: não pode ficar retida, senão zeraria a balança a cada reconexão.
   if (tara) ok = (await publicarComando(d.deviceId, { tara: true }, false)) && ok;
   if (!ok) {
     throw new AppError(503, 'Broker MQTT indisponível. Comando não enviado.', { codigo: 'MQTT_OFFLINE' });

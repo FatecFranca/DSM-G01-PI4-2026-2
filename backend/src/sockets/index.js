@@ -6,12 +6,7 @@ import { usuarioDoToken } from '../services/auth.service.js';
 let io = null;
 const sala = (organizacaoId) => `org:${organizacaoId}`;
 
-/**
- * WebSocket autenticado: o cliente envia o JWT em `auth.token` e o servidor confirma
- * no banco antes de aceitar. Cada conexão entra SÓ na sala da sua organização, então
- * uma empresa nunca recebe, em tempo real, os dados de outra.
- * Eventos: 'estoque:atualizado', 'alerta:estoque-baixo', 'evento:novo', 'dispositivo:status'.
- */
+// webSocket autenticado pelo mesmo JWT; cada conexão entra só na sala da sua organização
 export function iniciarSockets(httpServer) {
   io = new Server(httpServer, { cors: { origin: env.corsOrigins } });
 
@@ -36,7 +31,7 @@ export function iniciarSockets(httpServer) {
     const alvo = io.to(sala(organizacaoId));
     alvo.emit('estoque:atualizado', estoque);
     if (estoque.estoqueBaixo) {
-      alvo.emit('alerta:estoque-baixo', { bitolas: estoque.bitolasBaixas, limite: estoque.limiteBaixo });
+      alvo.emit('alerta:estoque-baixo', { bitolas: estoque.bitolasBaixas, tipos: estoque.tiposBaixos, limite: estoque.limiteBaixo });
     }
     if (evento) {
       alvo.emit('evento:novo', {

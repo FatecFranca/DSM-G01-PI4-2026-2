@@ -14,7 +14,7 @@ export default function Cadastro() {
   const { registrar } = useAuth();
   const navegar = useNavigate();
 
-  const [params] = useSearchParams(); // /cadastro?convite=XXXXX-XXXXX já abre no modo convite
+  const [params] = useSearchParams(); // /cadastro?convite=xxxxx-xxxxx já abre no modo convite
   const conviteDaUrl = params.get('convite') ?? '';
   const [modo, setModo] = useState(conviteDaUrl ? 'convite' : 'empresa');
   const [previa, setPrevia] = useState(null); // { organizacao, papel } do convite
@@ -32,7 +32,7 @@ export default function Cadastro() {
     return !msg;
   }
 
-  // Pergunta ao SERVIDOR se usuário/e-mail estão livres
+  // pergunta ao servidor se usuário/e-mail estão livres
   async function checarDisponibilidade(k) {
     try {
       const r = await api('/auth/disponibilidade', { query: { [k]: v[k].trim() } });
@@ -55,7 +55,7 @@ export default function Cadastro() {
     if (validarLocal(k) && (k === 'usuario' || k === 'email')) checarDisponibilidade(k);
   }
 
-  // Pergunta ao SERVIDOR de qual empresa é o convite, sem consumi-lo
+  // pergunta ao servidor de qual empresa é o convite, sem consumi-lo
   async function conferirConvite(codigo = v.codigoConvite) {
     setPrevia(null);
     if (validadores.codigoConvite(codigo)) return;

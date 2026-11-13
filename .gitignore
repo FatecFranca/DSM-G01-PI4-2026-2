@@ -1,12 +1,57 @@
+# Dependências e arquivos gerados (cada pessoa instala/compila localmente)
 node_modules/
-.env
-.env.*
-!.env.example
-iot/secrets.h
-*.log
 dist/
 build/
 .expo/
-.DS_Store
+.expo-shared/
+.vite/
+.cache/
+.npm/
+
+# Credenciais locais; manter os modelos de configuração no repositório
+.env
+.env.*
+!.env.example
+/iot/secrets.h
+
+# Skills e configurações locais de assistentes/editores
+.agents/
+.codex/
+AGENTS.md
+.vscode/
+.idea/
+
+# Testes e infraestrutura exclusiva de revisão (preservados apenas localmente)
+tests/
+test/
+__tests__/
+*.test.*
+*.spec.*
 coverage/
-.vscode
+test-results/
+playwright-report/
+/backend/scripts/revisar-integracao.js
+/infra/compose.revisao.yml
+
+# Relatórios de análise e capturas da revisão local
+/docs/analise-tecnica-*.md
+/docs/revisao-*.md
+/docs/ecossistema-paraflow.md
+/docs/imagens/dashboard-*.png
+
+# Temporários, logs e arquivos do sistema
+/tmp/
+/temp/
+/.tmp/
+/output/
+*.log
+*.tsbuildinfo
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Manter versionados: código, assets usados pelo app, package*.json,
+# arquivos .env.example, iot/secrets.example.h, Docker, CI e render.yaml.
