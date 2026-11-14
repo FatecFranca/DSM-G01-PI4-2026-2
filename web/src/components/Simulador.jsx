@@ -18,7 +18,7 @@ export default function Simulador({ maquinas }) {
       consultando = true;
       const atual = ++revisao.current;
       try {
-        const r = await api('/simulador');
+        const r = await api('/simulador', { timeoutMs: 15000 });
         if (montado.current && atual === revisao.current) { setSimulador(r); setErro(''); }
       } catch (e) {
         if (montado.current && atual === revisao.current) setErro(e.message);
@@ -43,7 +43,7 @@ export default function Simulador({ maquinas }) {
     setOcupado(true);
     setErro('');
     try {
-      const r = await api('/simulador', { metodo: 'PUT', corpo: {
+      const r = await api('/simulador', { metodo: 'PUT', timeoutMs: 15000, corpo: {
         ativo: !simulador.ativo, ...(!simulador.ativo && { deviceId: selecionada }),
       } });
       if (montado.current) setSimulador(r);
@@ -59,7 +59,7 @@ export default function Simulador({ maquinas }) {
     <section className="painel">
       <h2>Simulador de contagem</h2>
       <p className="app-sub">Gera uma peça de teste por segundo. As contagens são gravadas no estoque e no histórico desta empresa.</p>
-      <p role="status">{simulador ? (simulador.ativo ? 'Simulador ligado' : 'Simulador desligado') : 'Consultando simulador…'}
+      <p role="status">{simulador ? (simulador.ativo ? 'Simulador ligado' : 'Simulador desligado') : erro ? 'Simulador indisponível no momento. Tentando reconectar…' : 'Consultando simulador…'}
         {simulador && ` · ${simulador.contados} peças processadas nesta simulação.`}</p>
       <div className="form-inline alinha-fim">
         <label className="campo-rotulo">Máquina da simulação

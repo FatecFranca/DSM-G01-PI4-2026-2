@@ -26,35 +26,60 @@ export const salvarToken = (token, lembrar) => {
 let aoExpirar = () => {};
 export const definirAoExpirar = (fn) => { aoExpirar = fn; };
 
-export async function api(caminho, { metodo = 'GET', corpo, query, signal } = {}) {
+export async function api(caminho, { metodo = 'GET', corpo, query, signal, timeoutMs = 75000 } = {}) {
   const qs = query ? `?${new URLSearchParams(Object.entries(query).filter(([, v]) => v !== '' && v != null))}` : '';
   const token = lerToken();
 
-  let resp;
+  const controller = new AbortController();
+  let timer;
+  let cancelar;
   try {
-    resp = await fetch(`${BASE}${caminho}${qs}`, {
-      method: metodo,
-      signal,
-      headers: {
-        ...(corpo && { 'Content-Type': 'application/json' }),
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: corpo ? JSON.stringify(corpo) : undefined,
+    const interrupcao = new Promise((_, reject) => {
+      cancelar = () => {
+        controller.abort();
+        reject(new DOMException('Requisição cancelada.', 'AbortError'));
+      };
+      if (signal?.aborted) { cancelar(); return; }
+      signal?.addEventListener('abort', cancelar, { once: true });
+      timer = setTimeout(() => {
+        controller.abort();
+        reject(new ApiError(0, { codigo: 'TEMPO_ESGOTADO', erro: 'O servidor demorou para responder. Aguarde e atualize os dados antes de repetir a ação.' }));
+      }, timeoutMs);
     });
+    const requisicao = async () => {
+      if (controller.signal.aborted) throw new DOMException('Requisição cancelada.', 'AbortError');
+      const resp = await fetch(`${BASE}${caminho}${qs}`, {
+        method: metodo,
+        signal: controller.signal,
+        headers: {
+          ...(corpo && { 'Content-Type': 'application/json' }),
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: corpo ? JSON.stringify(corpo) : undefined,
+      });
+      if (controller.signal.aborted) throw new DOMException('Requisição cancelada.', 'AbortError');
+      const json = await resp.json().catch((e) => {
+        if (controller.signal.aborted) throw e;
+        return null;
+      });
+
+      if (controller.signal.aborted) throw new DOMException('Requisição cancelada.', 'AbortError');
+      if (!resp.ok) {
+        // sessão derrubada pelo servidor (token expirado/inválido): limpa e avisa o app
+        if (resp.status === 401 && token && caminho !== '/auth/login') {
+          limparToken();
+          aoExpirar();
+        }
+        throw new ApiError(resp.status, json);
+      }
+      return json;
+    };
+    return await Promise.race([requisicao(), interrupcao]);
   } catch (e) {
-    if (e.name === 'AbortError') throw e;
+    if (e.name === 'AbortError' || e instanceof ApiError) throw e;
     throw new ApiError(0, { erro: 'Não foi possível falar com o servidor. Verifique sua conexão.', codigo: 'REDE' });
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', cancelar);
   }
-
-  const json = await resp.json().catch(() => null);
-
-  if (!resp.ok) {
-    // sessão derrubada pelo servidor (token expirado/inválido): limpa e avisa o app
-    if (resp.status === 401 && token && caminho !== '/auth/login') {
-      limparToken();
-      aoExpirar();
-    }
-    throw new ApiError(resp.status, json);
-  }
-  return json;
 }

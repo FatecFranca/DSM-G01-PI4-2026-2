@@ -15,6 +15,16 @@ No site, em Configurações, adicione uma máquina e copie o `DEVICE_ID` e o `DE
 
 ## Wokwi
 
+### Demonstração online publicada
+
+O site está em https://paraflow.onrender.com e a simulação em https://wokwi.com/projects/475790891768031233.
+
+O projeto Wokwi foi salvo com o broker `broker.hivemq.com`, porta `1883` e `TOPIC_PREFIX` igual a `paraflow-guicampos06-demo-20261113`, também configurado no Render. Mantenha a identidade e o token de uma máquina cadastrada na empresa de demonstração; nunca copie tokens para este documento.
+
+O broker público foi autorizado somente para dados fictícios: outras pessoas podem ler mensagens e tokens ou enviar comandos. O prefixo exclusivo não protege o acesso. O Wokwi precisa estar aberto e executando, e o Render Free pode suspender o backend por inatividade; reabra o site e confira a máquina online antes da apresentação.
+
+### Configurar outro projeto
+
 1. Troque o `diagram.json`, o `sketch.ino` e o `libraries.txt` do projeto pelos desta pasta e crie o `secrets.h` (o Wokwi não lê o arquivo do seu computador).
 2. Use um broker que o backend também alcance, por exemplo `broker.hivemq.com` com um prefixo só seu.
 3. Os botões de 5, 10, 15 e 20 mm fazem o papel dos sensores de comprimento. O peso se ajusta no controle da célula de carga. Com `ESCALA_PESO = 100`, 105 g na célula valem 1,05 g reais (um M3 de 10 mm). O botão branco zera a balança.

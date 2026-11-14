@@ -55,6 +55,7 @@ export default function Dashboard() {
     try {
       await api('/dispositivo/comando', {
         metodo: 'POST',
+        timeoutMs: 15000,
         corpo: { deviceId: dispositivo.deviceId, ...corpo },
       });
       setAviso({ texto: 'Comando enviado. Aguarde a atualização da máquina.', erro: false });
@@ -317,7 +318,9 @@ export default function Dashboard() {
             </button>
           </div>
           <p className="nota">
-            Os comandos são enviados à máquina. O estado muda quando ela confirma a atualização.
+            {dispositivo && !dispositivo.online
+              ? 'Máquina offline. Inicie o Wokwi e aguarde a conexão MQTT para liberar os comandos.'
+              : 'Os comandos são enviados à máquina. O estado muda quando ela confirma a atualização.'}
           </p>
           {aviso && (
             <p className={`msg-app${aviso.erro ? ' erro' : ''}`} role={aviso.erro ? 'alert' : 'status'}>

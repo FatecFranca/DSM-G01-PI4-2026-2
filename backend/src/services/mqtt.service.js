@@ -4,6 +4,7 @@ import { bus } from '../utils/bus.js';
 import { eventoSchema, statusSchema, telemetriaSchema } from '../utils/schemas.js';
 import { registrarEvento } from './estoque.service.js';
 import { Dispositivo } from '../models/Dispositivo.js';
+import { publicarComPrazo } from '../utils/publicarMqtt.js';
 
 // tópicos (<p> = MQTT_TOPIC_PREFIX, <id> = deviceId):
 //   <p>/<id>/evento, status e telemetria: dispositivo -> backend, sempre com o token da máquina
@@ -97,10 +98,7 @@ async function aoReceber(topico, buffer) {
 }
 
 function publicar(topico, objeto, opcoes = { qos: 1, retain: true }) {
-  return new Promise((resolve) => {
-    if (!mqttConectado()) return resolve(false);
-    client.publish(topico, JSON.stringify(objeto), opcoes, (err) => resolve(!err));
-  });
+  return publicarComPrazo(client, topico, JSON.stringify(objeto), opcoes);
 }
 
 export const publicarComando = (deviceId, corpo, retain = true) =>

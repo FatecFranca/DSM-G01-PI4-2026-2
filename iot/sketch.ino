@@ -45,6 +45,7 @@ const unsigned long BIPE_MS = 150;
 const unsigned long INTERVALO_ALERTA_MS = 5000;
 const int FREQUENCIA_BUZZER_HZ = 2000;
 const unsigned long RETRY_MS = 5000;
+const unsigned long WIFI_RETRY_MS = 30000;
 
 // célula de carga (HX711)
 // fator = contagens por grama. 419,43 é o valor teórico de uma célula de 5 kg (1 mV/V);
@@ -299,10 +300,11 @@ void mantemConexoes() {
   unsigned long agora = millis();
 
   if (WiFi.status() != WL_CONNECTED) {
-    if (agora - ultimaTentativaWifi > RETRY_MS) {
+    if (agora - ultimaTentativaWifi >= WIFI_RETRY_MS) {
       ultimaTentativaWifi = agora;
-      Serial.println("Wi-Fi desconectado, tentando de novo...");
-      WiFi.reconnect();
+      Serial.printf("Wi-Fi sem conexao apos 30 s (status=%d). Confira Wokwi-GUEST, senha vazia e o gateway do simulador. Reiniciando tentativa...\n", WiFi.status());
+      WiFi.disconnect(false, false);
+      WiFi.begin(WIFI_SSID, WIFI_PASS, strcmp(WIFI_SSID, "Wokwi-GUEST") == 0 ? 6 : 0);
     }
     return;
   }
@@ -445,7 +447,9 @@ void setup() {
   snprintf(topicoPedido, sizeof(topicoPedido), "%s/%s/pedido", TOPIC_PREFIX, DEVICE_ID);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASS, 6);  // canal 6 acelera a conexão no Wokwi
+  WiFi.setAutoReconnect(true);
+  ultimaTentativaWifi = millis();
+  WiFi.begin(WIFI_SSID, WIFI_PASS, strcmp(WIFI_SSID, "Wokwi-GUEST") == 0 ? 6 : 0);
   snprintf(mensagemLwt, sizeof(mensagemLwt), "{\"online\":false,\"token\":\"%s\"}", DEVICE_TOKEN);
   mqtt.setBufferSize(512);
   mqtt.setServer(MQTT_HOST, MQTT_PORT);
@@ -453,6 +457,7 @@ void setup() {
 }
 
 void loop() {
+  delay(1);  // cede tempo às tarefas de rede mesmo com o separador desligado
   mantemConexoes();
   processaSerial();
   verificaBotaoTara();

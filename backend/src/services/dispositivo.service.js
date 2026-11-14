@@ -105,7 +105,7 @@ export async function enviarComando(organizacaoId, deviceId, { ligado, tara }) {
   // tara é um gesto pontual: não pode ficar retida, senão zeraria a balança a cada reconexão.
   if (tara) ok = (await publicarComando(d.deviceId, { tara: true }, false)) && ok;
   if (!ok) {
-    throw new AppError(503, 'Broker MQTT indisponível. Comando não enviado.', { codigo: 'MQTT_OFFLINE' });
+    throw new AppError(503, 'Não foi possível confirmar o envio ao broker. Confira o estado da máquina antes de repetir o comando.', { codigo: 'MQTT_OFFLINE' });
   }
   return { deviceId: d.deviceId, ...(ligado !== undefined && { ligado }), ...(tara && { tara: true }), enviado: true };
 }
