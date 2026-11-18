@@ -9,6 +9,10 @@ Projeto Integrador. Sistema que separa, conta e controla o estoque de parafusos 
 - Gabriel Henrique Ferreira
 - Rodrigo Avelar Santos
 
+## Link Video Youtube
+
+- https://youtu.be/YLWY0X4DFk4?is=l2QoOXhh1fusn_rS
+
 ## O que o sistema faz
 
 - Separa e conta cada parafuso (comprimento pelo sensor, bitola pelo peso na célula de carga).
